@@ -55,7 +55,16 @@ class GraphSequence(Sequence):
         molecules still refer to the correct atoms.
 
         """
-        batch_indexes = idx * self.batch_size + np.arange(0, self.batch_size)
+
+        if isinstance(idx, slice):
+            indices = range(*idx.indices(len(self)))
+            batch_indexes = np.concatenate(
+                [i * self.batch_size + np.arange(0, self.batch_size)
+                 for i in indices])
+
+        else:
+            batch_indexes = idx * self.batch_size + np.arange(0, self.batch_size)
+
         batch_indexes = batch_indexes[batch_indexes < len(self._inputs)]
 
         batch_data = {

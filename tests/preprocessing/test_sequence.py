@@ -41,3 +41,12 @@ def test_sequence(get_2d_data):
 
     assert len(seq2[0]['atom']) == (seq2[0]['connectivity'].max() + 1)
     assert seq2[0]['connectivity'].min() == 0
+
+    num_atoms = sum((len(item['atom']) for item in inputs))
+    num_atoms_except_last = sum((len(item['atom']) for item in inputs[:-1]))
+
+    all_batches = seq1[:]
+    assert num_atoms == len(all_batches['atom'])
+
+    all_batches_except_last = seq2[:-1]
+    assert num_atoms_except_last == len(all_batches_except_last['atom'])

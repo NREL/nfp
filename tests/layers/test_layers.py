@@ -30,7 +30,7 @@ def test_message():
         'connectivity': x3})
 
     assert_allclose(np.vstack([x2[0].dot(x1[1]), x2[1].dot(x1[0])]),
-                    out)
+                    out, rtol=1E-5, atol=1E-5)
 
 def test_GatherAtomToBond():
     atom = layers.Input(name='atom', shape=(5,), dtype='float32')

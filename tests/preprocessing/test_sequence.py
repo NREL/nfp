@@ -50,3 +50,14 @@ def test_sequence(get_2d_data):
 
     all_batches_except_last = seq2[:-1]
     assert num_atoms_except_last == len(all_batches_except_last['atom'])
+
+
+    y_list = [y, y + 1]
+    seq_list = GraphSequence(inputs, y_list, batch_size=5, final_batch=True)
+    assert len(seq_list[0][1][0]) == 5
+    assert np.allclose(seq_list[0][1][0], seq_list[0][1][1] - 1)
+
+    y_dict = {'y1': y, 'y2': y + 1}
+    seq_dict = GraphSequence(inputs, y_dict, batch_size=5, final_batch=True)
+    assert len(seq_dict[0][1]['y1']) == 5
+    assert np.allclose(seq_dict[0][1]['y1'], seq_dict[0][1]['y2'] - 1)

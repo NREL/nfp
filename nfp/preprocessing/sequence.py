@@ -19,7 +19,7 @@ class GraphSequence(Sequence):
 
         """
         self._inputs = inputs
-        self._y = np.asarray(y) if y is not None else None
+        self._y = y
         self._input_keys = list(inputs[0].keys())
         self.batch_size = batch_size
         self.shuffle = shuffle
@@ -45,7 +45,7 @@ class GraphSequence(Sequence):
             np.random.shuffle(indices)
             self._inputs = [self._inputs[i] for i in indices]
             if self._y is not None:
-                self._y = self._y[indices]
+                self._y = self.index_y(indices)
 
     
     def __getitem__(self, idx):
@@ -90,10 +90,24 @@ class GraphSequence(Sequence):
         # doing predictions. Here, if we've specified a y matrix, we return the
         # x,y pairs for training, otherwise just return the x data.
         if self._y is not None:
-            return (batch_data, self._y[batch_indexes])
+            return (batch_data, self.index_y(batch_indexes))
 
         else:
             return batch_data
+
+
+    def index_y(self, indices):
+        """ the output field can take a bunch of different formats """
+
+        if isinstance(self._y, list):
+            return [yi[indices] for yi in self._y]
+
+        elif isinstance(self._y, dict):
+            return {key: val[indices] for key, val in self._y.items()}
+
+        else:
+            return np.asarray(self._y)[indices]
+
         
     def process_data(self, batch_data):
         """ function to add additional processing to batch data before returning """

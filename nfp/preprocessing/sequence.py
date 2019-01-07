@@ -83,6 +83,8 @@ class GraphSequence(Sequence):
         n_graphs = len(batch_indexes)
         batch_data['node_graph_indices'] = np.repeat(
             np.arange(n_graphs), batch_data['n_atom'])
+        batch_data['bond_graph_indices'] = np.repeat(
+            np.arange(n_graphs), batch_data['n_bond'])
 
         batch_data = self.process_data(batch_data)
 

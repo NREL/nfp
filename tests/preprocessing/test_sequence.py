@@ -20,6 +20,10 @@ def test_sequence(get_2d_data):
     seq = GraphSequence(inputs, y, batch_size=10, final_batch=False)
     for batch in seq:
         assert batch[0]['node_graph_indices'][-1] == 9
+        assert batch[0]['bond_graph_indices'][-1] == 9
+
+        assert len(batch[0]['node_graph_indices']) == len(batch[0]['atom'])
+        assert len(batch[0]['bond_graph_indices']) == len(batch[0]['bond'])
 
     np.testing.assert_allclose(
         GraphSequence(inputs, y, batch_size=3, shuffle=False)[0][0]['atom'][:10],

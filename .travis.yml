@@ -1,9 +1,8 @@
-language: python
-python:
-  # We don't actually use the Travis Python, but this keeps it organized.
-  - "3.5"
-  - "3.6"
-  - "3.7"
+language: minimal
+env:
+  - PYTHON_VERSION="3.5"
+  - PYTHON_VERSION="3.6"
+  - PYTHON_VERSION="3.7"
 
 install:
   - sudo apt-get update
@@ -17,7 +16,7 @@ install:
   - conda update -q conda
   - conda config --add channels conda_forge
   - conda info -a
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION rdkit
+  - conda create -q -n test-environment python=$PYTHON_VERSION rdkit
   - source activate test-environment
 
   # Install non-rdkit requirements via pip

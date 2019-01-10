@@ -1,0 +1,5 @@
+numpy
+tqdm
+tensorflow
+tqdm
+-e git://github.com:keras-team/keras.git#egg=keras

@@ -39,7 +39,7 @@ setup(
     ],
 
     packages=find_packages(exclude=['docs', 'tests']),  # Required
-    install_requires=['numpy', 'tqdm', 'keras', 'tensorflow', 'tqdm'],
+    install_requires=['numpy', 'tqdm', 'keras', 'tensorflow', 'tqdm', 'scikit-learn'],
 
     project_urls={
         'Source': 'https://github.com/NREL/nfp',

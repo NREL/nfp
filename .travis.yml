@@ -14,7 +14,7 @@ install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
-  - conda config --add channels conda_forge
+  - conda config --add channels conda-forge
   - conda info -a
   - conda create -q -n test-environment python=$PYTHON_VERSION rdkit
   - source activate test-environment

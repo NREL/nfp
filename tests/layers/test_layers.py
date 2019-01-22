@@ -6,7 +6,7 @@ from keras import models
 
 from nfp.layers import (MessageLayer, Squeeze, GatherAtomToBond,
                         ReduceAtomToMol, ReduceBondToAtom, Embedding2D,
-                        EdgeNetwork)
+                        EdgeNetwork, GatherMolToAtomOrBond)
 from nfp.models import GraphModel
 
 def test_message():
@@ -50,6 +50,25 @@ def test_GatherAtomToBond():
 
     assert_allclose(out[0], x1[1])
     assert_allclose(out[1], x1[0])
+
+
+def test_GatherMolToAtomOrBond():
+    global_state = layers.Input(name='global_state', shape=(5,), dtype='float32')
+    node_graph_indices = layers.Input(name='node_graph_indices', shape=(1,), dtype='int32')
+
+    snode = Squeeze()(node_graph_indices)
+ 
+    layer = GatherMolToAtomOrBond()
+    o = layer([global_state, snode])
+    assert o._keras_shape == (None, 5)
+
+    model = GraphModel([global_state, node_graph_indices], o)
+
+    x1 = np.random.rand(2, 5)
+    x2 = np.array([0, 0, 0, 1, 1])
+
+    out = model.predict_on_batch([x1, x2])
+    assert_allclose(out, x1[x2])
 
 
 def test_ReduceAtomToMol():

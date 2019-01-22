@@ -5,6 +5,7 @@ custom_layers = {
     'MessageLayer': MessageLayer,
     'EdgeNetwork': EdgeNetwork,
     'ReduceAtomToMol': ReduceAtomToMol,
+    'ReduceAtomOrBondToMol': ReduceAtomOrBondToMol,
     'ReduceBondToAtom': ReduceBondToAtom,
     'GatherAtomToBond': GatherAtomToBond,
     'GatherMolToAtomOrBond': GatherMolToAtomOrBond,

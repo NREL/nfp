@@ -7,6 +7,7 @@ custom_layers = {
     'ReduceAtomToMol': ReduceAtomToMol,
     'ReduceBondToAtom': ReduceBondToAtom,
     'GatherAtomToBond': GatherAtomToBond,
+    'GatherMolToAtomOrBond': GatherMolToAtomOrBond,
     'GRUStep': GRUStep,
     'Embedding2D': Embedding2D,
     'Squeeze': Squeeze,

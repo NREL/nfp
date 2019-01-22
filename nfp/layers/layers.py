@@ -148,6 +148,27 @@ class GatherAtomToBond(Layer):
         base_config = super(GatherAtomToBond, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
+
+class GatherMolToAtomOrBond(Layer):
+    """ Reshapes a global feature (num_mols_in_batch, d) to the atom or bond features
+    (num_bonds_in_batch / num_atoms_in_batch, d) by reindexing according to the
+    mol for which each atom or bond belongs.
+
+    """
+    
+    def call(self, inputs):
+        global_matrix, node_or_bond_graph_indices = inputs
+        return tf.gather(global_matrix, node_or_bond_graph_indices)
+
+    def compute_output_shape(self, input_shape):
+        """ Computes the shape of the output,
+        which should be the shape of the global matrix with the length
+        of the indexer matrix """
+        
+        assert input_shape and len(input_shape) == 2
+        return input_shape[0]
+
+
 class Reducer(Layer):
     """ Superclass for reducing methods. 
     

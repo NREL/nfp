@@ -1,4 +1,10 @@
 language: minimal
+
+addons:
+  apt:
+    packages:
+      - libstdc++6
+
 env:
   - PYTHON_VERSION="3.6"
 

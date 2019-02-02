@@ -116,8 +116,8 @@ class GraphSequence(Sequence):
 
         # These aren't used currently, so I pop them. But we might need them at
         # a later time.
-        del batch_data['n_atom']
-        del batch_data['n_bond']
+        # del batch_data['n_atom']
+        # del batch_data['n_bond']
         
         return batch_data
 

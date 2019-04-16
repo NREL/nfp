@@ -2,7 +2,9 @@ import pytest
 import numpy as np
 
 from keras import backend as K
-from nfp.models import masked_mean_absolute_error, masked_mean_squared_error
+from nfp.models import (masked_mean_absolute_error,
+                        masked_mean_squared_error,
+                        masked_log_cosh)
 
 def test_losses():
 
@@ -17,3 +19,4 @@ def test_losses():
 
     assert np.isfinite(K.eval(masked_mean_absolute_error(y_a, y_b)))
     assert np.isfinite(K.eval(masked_mean_squared_error(y_a, y_b)))
+    assert np.isfinite(K.eval(masked_log_cosh(y_a, y_b)))

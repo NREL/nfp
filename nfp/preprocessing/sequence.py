@@ -1,22 +1,29 @@
 import numpy as np
-from random import shuffle
 
 from keras.utils import Sequence
 
 
 class GraphSequence(Sequence):
-    
-    def __init__(self, inputs, y=None, batch_size=1, shuffle=True,
-                 final_batch=True):
-        """ A keras.Sequence generator to be passed to model.fit_generator. (or
+    """A keras.Sequence generator to be passed to model.fit_generator. (or
         any other *_generator method.) Returns (inputs, y) tuples where
         molecule feature matrices have been stitched together. Offsets the
         connectivity matrices such that atoms are indexed appropriately.
+    """
+    
+    def __init__(self, inputs, y=None, batch_size=1, shuffle=True,
+                 final_batch=True, seed=1, shuffle_offset=0):
+        """
 
-        batch_size: number of molecules per batch
-        shuffle : whether to shuffle the input data
-        final_batch : whether to include the final, incomplete batch
-
+        Args:
+            inputs ([dict]): List of dictionaries describing each molecule
+            y (list, dict, None): Output properties. Either a 1- or 2-d list, or a dictionary
+                of lists, or "None" if there are no outputs
+            batch_size (int): Number of molecules per batch
+            shuffle (bool): Whether to shuffle the input data
+            final_batch (bool): Whether to include the final, incomplete batch
+            seed (int): Initial random seed for the data shuffler
+            shuffle_offset (int): How much to offset the indices when shuffling the data.
+                Used during distributed model training to ensure no data overlap between replicas
         """
         self._inputs = inputs
         self._y = y
@@ -24,8 +31,8 @@ class GraphSequence(Sequence):
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.final_batch = final_batch
-        self.seed = 0
-        
+        self._random = np.random.RandomState(seed)
+        self.shuffle_offset = shuffle_offset
 
     def __len__(self):
         """ Total number of batches """
@@ -34,20 +41,21 @@ class GraphSequence(Sequence):
         else:
             return int(np.floor(len(self._inputs) / float(self.batch_size)))
 
-
     def on_epoch_end(self):
         if self.shuffle:
-
-            np.random.seed(self.seed)
-            self.seed += 1
-
+            # Shuffle the indices
             indices = np.arange(0, len(self._inputs))
-            np.random.shuffle(indices)
+            self._random.shuffle(indices)
+
+            # If needed, shift the data to create an offset
+            if self.shuffle_offset != 0:
+                indices = np.roll(indices, self.shuffle_offset)
+
+            # Arrange the list according to the shuffle
             self._inputs = [self._inputs[i] for i in indices]
             if self._y is not None:
                 self._y = self.index_y(indices)
 
-    
     def __getitem__(self, idx):
         """ Calculate the feature matrices for a whole batch (with index `i` <
         self.__len__). This involves adding offsets to the indices for each
@@ -92,11 +100,9 @@ class GraphSequence(Sequence):
         # doing predictions. Here, if we've specified a y matrix, we return the
         # x,y pairs for training, otherwise just return the x data.
         if self._y is not None:
-            return (batch_data, self.index_y(batch_indexes))
-
+            return batch_data, self.index_y(batch_indexes)
         else:
             return batch_data
-
 
     def index_y(self, indices):
         """ the output field can take a bunch of different formats """
@@ -110,7 +116,6 @@ class GraphSequence(Sequence):
         else:
             return np.asarray(self._y)[indices]
 
-        
     def process_data(self, batch_data):
         """ function to add additional processing to batch data before returning """
 
@@ -121,9 +126,8 @@ class GraphSequence(Sequence):
         
         return batch_data
 
-    
     def _concat(self, to_stack):
-        """ function to stack (or concatentate) depending on dimensions """
+        """ function to stack (or concatenate) depending on dimensions """
 
         if np.asarray(to_stack[0]).ndim >= 2:
             return np.concatenate(to_stack)

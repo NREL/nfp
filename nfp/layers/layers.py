@@ -1,13 +1,16 @@
+from nfp.layers.wrappers import LSTMStep
+
 from keras.engine import Layer
 
 from keras import activations
 from keras import initializers
 from keras import regularizers
 from keras import constraints
-from keras.layers import Lambda
 
+import numpy as np
 import tensorflow as tf
 import keras.backend as K
+
 
 class MessageLayer(Layer):
     """ Implements the matrix multiplication message functions from Gilmer
@@ -29,7 +32,7 @@ class MessageLayer(Layer):
         reducer : ['sum', 'mean', 'max', or 'min']
             How to collect incoming messages for each atom. In this library,
             I'm careful to only have messages be a function of the sending
-            atom, so we can sort the connectivity matrix by recieving atom.
+            atom, so we can sort the connectivity matrix by receiving atom.
             That lets us use the `segment_*` methods from tensorflow, instead
             of the `unsorted_segment_*` methods.
 
@@ -49,10 +52,9 @@ class MessageLayer(Layer):
         self._reducer = reducer_dict[reducer]
 
         super(MessageLayer, self).__init__(**kwargs)
-    
 
     def call(self, inputs, training=None):
-        """ Perform a single message passing step, returing the summed messages
+        """ Perform a single message passing step, returning the summed messages
         for each recieving atom.
 
         Inputs are [atom_matrix, bond_matrix, connectivity_matrix]
@@ -90,11 +92,10 @@ class MessageLayer(Layer):
         dropout_messages = K.in_train_phase(
             add_dropout(), messages, training=training)
 
-        # Sum each message along the (sorted) reciever nodes
+        # Sum each message along the (sorted) receiver nodes
         summed_message = self._reducer(dropout_messages, connectivity[:, 0])
 
         return summed_message
-
 
     def compute_output_shape(self, input_shape):
         """ Computes the shape of the output, which should be the same
@@ -103,7 +104,6 @@ class MessageLayer(Layer):
         assert input_shape and len(input_shape) == 3
         assert input_shape[0][-1]  # atom hidden state dimension must be specified
         return input_shape[0]
-
 
     def get_config(self):
         config = {
@@ -420,3 +420,110 @@ class EdgeNetwork(Layer):
         }
         base_config = super(EdgeNetwork, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+
+class Set2Set(Layer):
+    """Implements the Set2Set layer of Vinyals et al. (2015)
+
+    Generates a single embedding for a set of molecules given the embeddings of each
+    atom in the molecule
+
+    Implementation based on
+    `DeepChem's implementation <https://github.com/deepchem/deepchem/blob/ff21bdac0f82311cde684e4f081ea5a40472806d/deepchem/models/layers.py#L2451>`_
+    with additions to handle variable batch sizes employed in NFP.
+    """
+
+    def __init__(self, m=6, init='orthogonal'):
+        """
+        Args:
+             m (int): Number of set2set computations
+             init (str): Initialization method
+        """
+        super().__init__()
+        self.m = m
+        self.init = initializers.get(init)
+        self.U = None
+        self.b = None
+        self._n_hidden = None
+
+    def build(self, input_shape):
+        self._n_hidden = input_shape[0][1]
+
+        # Make the weights for the LSTM
+        self.U = self.add_weight(
+            shape=(2 * self._n_hidden, 4 * self._n_hidden),
+            initializer=self.init,
+            name='U'
+        )
+        self.b = K.variable(
+            np.concatenate([np.zeros(self._n_hidden), np.ones(self._n_hidden),
+                            np.zeros(self._n_hidden), np.zeros(self._n_hidden)]),
+            name='b'
+        )
+        self._trainable_weights.append(self.b)
+        super().build(input_shape)
+
+    def compute_output_shape(self, input_shape):
+        assert input_shape and len(input_shape) == 2
+        # Output shape is (n_graphs, atom_dim)
+        return None, self._n_hidden * 2
+
+    def get_config(self):
+        config = super().get_config()
+        config['m'] = self.m
+        config['init'] = self.init
+        return config
+
+    def call(self, inputs, **kwargs):
+        """Run the Set-2-Set calculation
+
+        Args:
+            inputs (tuple): Atomic features
+                - Atomic embeddings
+                - Molecular index for each atom
+        """
+
+        # Unpack the atom features
+        atom_features, atom_split = inputs
+
+        # Get the batch size
+        batch_size = tf.reduce_max(atom_split) + 1
+
+        # Create the query vector and state of the LSTM
+        #  Together, these define the representation of the whole set
+        c = tf.zeros((batch_size, self._n_hidden))  # State vector
+        h = tf.zeros((batch_size, self._n_hidden))  # Query vector
+
+        q_star = None
+        for _ in range(self.m):
+            # Get the hidden state for each atom, according to its molecule
+            q_expanded = tf.gather(h, atom_split)
+
+            # Use the molecular hidden state to generate a scalar for each atom
+            e = tf.reduce_sum(atom_features * q_expanded, 1)
+
+            # Compute the attention based on the scalars for each atom
+            e_exp = tf.exp(e)
+            e_mol = tf.segment_sum(e_exp, atom_split)  # Sum over molecules
+            e_mol_expanded = tf.gather(e_mol, atom_split)
+            a = e_exp / e_mol_expanded
+
+            # Compute the sum
+            r = tf.segment_sum(tf.reshape(a, [-1, 1]) * atom_features, atom_split)
+
+            # Model using this layer must set pad_batches=True
+            q_star = tf.concat([h, r], axis=1)
+            h, c = self._lstm_step(q_star, c)
+
+        return q_star
+
+    def _lstm_step(self, h, c):
+        """Perform a single step of the LSTM"""
+        z = tf.nn.xw_plus_b(h, self.U, self.b)
+        i = tf.nn.sigmoid(z[:, :self._n_hidden])
+        f = tf.nn.sigmoid(z[:, self._n_hidden:2 * self._n_hidden])
+        o = tf.nn.sigmoid(z[:, 2 * self._n_hidden:3 * self._n_hidden])
+        z3 = z[:, 3 * self._n_hidden:]
+        c_out = f * c + i * tf.nn.tanh(z3)
+        h_out = o * tf.nn.tanh(c_out)
+        return h_out, c_out

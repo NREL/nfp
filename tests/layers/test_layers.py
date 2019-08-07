@@ -1,13 +1,15 @@
 import pytest
 import numpy as np
+from keras.engine import Layer
 from numpy.testing import assert_allclose
 from keras import layers
 from keras import models
 
-from nfp.layers import (MessageLayer, Squeeze, GatherAtomToBond,
+from nfp.layers import (MessageLayer, Squeeze, GatherAtomToBond, Set2Set,
                         ReduceAtomToMol, ReduceBondToAtom, Embedding2D,
                         EdgeNetwork, GatherMolToAtomOrBond)
 from nfp.models import GraphModel
+
 
 def test_message():
     atom = layers.Input(name='atom', shape=(5,), dtype='float32')
@@ -150,3 +152,22 @@ def test_EdgeNetwork():
     assert (~np.isclose(out[2], out[3])).any()
     assert (~np.isclose(out[0], out[-1])).any()
 
+
+def test_set2set():
+    atom = layers.Input(name='atom', shape=(5,), dtype='float32')
+    node_graph_indices = layers.Input(name='node_graph_indices', shape=(1,), dtype='int32')
+
+    snode = Squeeze()(node_graph_indices)
+
+    reduce_layer = Set2Set()
+    o = reduce_layer([atom, snode])
+    assert o._keras_shape == (None, 10)
+
+    model = GraphModel([atom, node_graph_indices], o)
+
+    x1 = np.random.rand(5, 5)
+    x2 = np.array([0, 0, 0, 1, 1])
+
+    out = model.predict_on_batch([x1, x2])
+
+    assert out.shape == (2, 10)

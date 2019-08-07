@@ -433,13 +433,13 @@ class Set2Set(Layer):
     with additions to handle variable batch sizes employed in NFP.
     """
 
-    def __init__(self, m=6, init='orthogonal'):
+    def __init__(self, m=6, init='orthogonal', **kwargs):
         """
         Args:
              m (int): Number of set2set computations
              init (str): Initialization method
         """
-        super().__init__()
+        super().__init__(**kwargs)
         self.m = m
         self.init = initializers.get(init)
         self.U = None

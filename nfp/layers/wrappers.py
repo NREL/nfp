@@ -14,6 +14,7 @@ Peter, 11/9/2018.
 
 from keras.layers import GRUCell, LSTMCell
 
+
 class GRUStep(GRUCell): 
     def build(self, input_shape):
         GRUCell.build(self, input_shape[0])

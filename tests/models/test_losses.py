@@ -1,7 +1,6 @@
-import pytest
 import numpy as np
 
-from keras import backend as K
+import tensorflow.keras.backend as K
 from nfp.models import (masked_mean_absolute_error,
                         masked_mean_squared_error,
                         masked_log_cosh)

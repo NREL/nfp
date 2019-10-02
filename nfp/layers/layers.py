@@ -1,15 +1,14 @@
-from nfp.layers.wrappers import LSTMStep
+import tensorflow as tf
+from tensorflow.keras.layers import Layer
 
-from keras.engine import Layer
+from tensorflow.keras import activations
+from tensorflow.keras import initializers
+from tensorflow.keras import regularizers
+from tensorflow.keras import constraints
 
-from keras import activations
-from keras import initializers
-from keras import regularizers
-from keras import constraints
+import tensorflow.keras.backend as K
 
 import numpy as np
-import tensorflow as tf
-import keras.backend as K
 
 
 class MessageLayer(Layer):
@@ -42,11 +41,11 @@ class MessageLayer(Layer):
         self.reducer = reducer
 
         reducer_dict = {
-            None: tf.segment_sum,
-            'sum': tf.segment_sum,
-            'mean': tf.segment_mean,
-            'max': tf.segment_max,
-            'min': tf.segment_min
+            None: tf.math.segment_sum,
+            'sum': tf.math.segment_sum,
+            'mean': tf.math.segment_mean,
+            'max': tf.math.segment_max,
+            'min': tf.math.segment_min
         }
 
         self._reducer = reducer_dict[reducer]
@@ -83,27 +82,15 @@ class MessageLayer(Layer):
         messages = K.batch_dot(bond_matrix, atom_gathered)
 
         # Add dropout on a message-by-message basis if desired
-        def add_dropout():
+        if training:
             if 0. < self.dropout < 1.:
-                return K.dropout(messages, self.dropout)
-            else:
-                return messages
-
-        dropout_messages = K.in_train_phase(
-            add_dropout(), messages, training=training)
+                messages = tf.nn.dropout(messages, self.dropout)
 
         # Sum each message along the (sorted) receiver nodes
-        summed_message = self._reducer(dropout_messages, connectivity[:, 0])
+        summed_message = self._reducer(messages, connectivity[:, 0])
 
         return summed_message
 
-    def compute_output_shape(self, input_shape):
-        """ Computes the shape of the output, which should be the same
-        dimension as the first input, that atom hidden state """
-        
-        assert input_shape and len(input_shape) == 3
-        assert input_shape[0][-1]  # atom hidden state dimension must be specified
-        return input_shape[0]
 
     def get_config(self):
         config = {
@@ -133,13 +120,6 @@ class GatherAtomToBond(Layer):
         atom_matrix, connectivity = inputs
         return  tf.gather(atom_matrix, connectivity[:, self.index])
 
-    def compute_output_shape(self, input_shape):
-        """ Computes the shape of the output,
-        which should be the shape of the atom matrix with the length
-        of the bond matrix """
-        
-        assert input_shape and len(input_shape) == 2
-        return input_shape[0]
         
     def get_config(self):
         config = {
@@ -160,14 +140,6 @@ class GatherMolToAtomOrBond(Layer):
         global_matrix, node_or_bond_graph_indices = inputs
         return tf.gather(global_matrix, node_or_bond_graph_indices)
 
-    def compute_output_shape(self, input_shape):
-        """ Computes the shape of the output,
-        which should be the shape of the global matrix with the length
-        of the indexer matrix """
-        
-        assert input_shape and len(input_shape) == 2
-        return input_shape[0]
-
 
 class Reducer(Layer):
     """ Superclass for reducing methods. 
@@ -186,11 +158,11 @@ class Reducer(Layer):
         self.reducer = reducer
 
         reducer_dict = {
-            None: tf.segment_sum,
-            'sum': tf.segment_sum,
-            'mean': tf.segment_mean,
-            'max': tf.segment_max,
-            'min': tf.segment_min
+            None: tf.math.segment_sum,
+            'sum': tf.math.segment_sum,
+            'mean': tf.math.segment_mean,
+            'max': tf.math.segment_max,
+            'min': tf.math.segment_min
         }
 
         self._reducer = reducer_dict[reducer]
@@ -201,11 +173,6 @@ class Reducer(Layer):
         config = {'reducer': self.reducer}
         base_config = super(Reducer, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
-
-    def compute_output_shape(self, input_shape):
-        assert input_shape and len(input_shape) == 2
-        # Output shape is (n_graphs, atom_dim)
-        return input_shape[0]
 
 
 class ReduceAtomOrBondToMol(Reducer):
@@ -259,21 +226,6 @@ class ReduceBondToAtom(Reducer):
         return self._reducer(bond_matrix, connectivity[:, 0])
 
 
-class Squeeze(Layer):
-    """ Keras forces inputs to be a vector per entry, so this layer squeezes
-    them to a single dimension.
-
-    I.e., node_graph_indices will have shape (num_atoms_in_batch, 1), while its
-    easier to work with a vector of shape (num_atoms_in_batch,)
-    """
-
-    def call(self, inputs):
-        return K.squeeze(inputs, 1)
-
-    def compute_output_shape(self, input_shape):
-        return input_shape[:-1]
-
-
 class Embedding2D(Layer):
     """ Keras typically wants to embed items as a single vector, while for the
     matrix multiplication method of Gilmer 2017 we need a matrix for each bond
@@ -308,7 +260,7 @@ class Embedding2D(Layer):
         self.built = True
         
     def call(self, inputs):
-        return tf.nn.embedding_lookup(self.embeddings, inputs)
+        return tf.nn.embedding_lookup(params=self.embeddings, ids=inputs)
         
     def compute_output_shape(self, input_shape):
         return (input_shape[0], self.output_dim, self.output_dim)
@@ -487,7 +439,7 @@ class Set2Set(Layer):
         atom_features, atom_split = inputs
 
         # Get the batch size
-        batch_size = tf.reduce_max(atom_split) + 1
+        batch_size = tf.reduce_max(input_tensor=atom_split) + 1
 
         # Create the query vector and state of the LSTM
         #  Together, these define the representation of the whole set
@@ -500,16 +452,16 @@ class Set2Set(Layer):
             q_expanded = tf.gather(h, atom_split)
 
             # Use the molecular hidden state to generate a scalar for each atom
-            e = tf.reduce_sum(atom_features * q_expanded, 1)
+            e = tf.reduce_sum(input_tensor=atom_features * q_expanded, axis=1)
 
             # Compute the attention based on the scalars for each atom
             e_exp = tf.exp(e)
-            e_mol = tf.segment_sum(e_exp, atom_split)  # Sum over molecules
+            e_mol = tf.math.segment_sum(e_exp, atom_split)  # Sum over molecules
             e_mol_expanded = tf.gather(e_mol, atom_split)
             a = e_exp / e_mol_expanded
 
             # Compute the sum
-            r = tf.segment_sum(tf.reshape(a, [-1, 1]) * atom_features, atom_split)
+            r = tf.math.segment_sum(tf.reshape(a, [-1, 1]) * atom_features, atom_split)
 
             # Model using this layer must set pad_batches=True
             q_star = tf.concat([h, r], axis=1)
@@ -519,7 +471,7 @@ class Set2Set(Layer):
 
     def _lstm_step(self, h, c):
         """Perform a single step of the LSTM"""
-        z = tf.nn.xw_plus_b(h, self.U, self.b)
+        z = tf.compat.v1.nn.xw_plus_b(h, self.U, self.b)
         i = tf.nn.sigmoid(z[:, :self._n_hidden])
         f = tf.nn.sigmoid(z[:, self._n_hidden:2 * self._n_hidden])
         o = tf.nn.sigmoid(z[:, 2 * self._n_hidden:3 * self._n_hidden])

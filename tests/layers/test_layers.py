@@ -1,26 +1,21 @@
-import pytest
 import numpy as np
-from keras.engine import Layer
+import tensorflow as tf
 from numpy.testing import assert_allclose
-from keras import layers
-from keras import models
 
-from nfp.layers import (MessageLayer, Squeeze, GatherAtomToBond, Set2Set,
+from nfp.layers import (MessageLayer, GatherAtomToBond, Set2Set,
                         ReduceAtomToMol, ReduceBondToAtom, Embedding2D,
                         EdgeNetwork, GatherMolToAtomOrBond)
-from nfp.models import GraphModel
-
 
 def test_message():
-    atom = layers.Input(name='atom', shape=(5,), dtype='float32')
-    bond = layers.Input(name='bond', shape=(5,5), dtype='float32')
-    connectivity = layers.Input(name='connectivity', shape=(2,), dtype='int32')
+    atom = tf.keras.Input(name='atom', shape=(5,), dtype='float32')
+    bond = tf.keras.Input(name='bond', shape=(5,5), dtype='float32')
+    connectivity = tf.keras.Input(name='connectivity', shape=(2,), dtype='int32')
 
     message_layer = MessageLayer()
     o = message_layer([atom, bond, connectivity])
-    assert o._keras_shape == (None, 5)
+    assert o.shape.as_list() == [None, 5]
 
-    model = GraphModel([atom, bond, connectivity], o)
+    model = tf.keras.Model(inputs=[atom, bond, connectivity], outputs=o)
     
     x1 = np.random.rand(2, 5)
     x2 = np.random.rand(2, 5, 5)
@@ -35,17 +30,17 @@ def test_message():
                     out, rtol=1E-5, atol=1E-5)
 
 def test_GatherAtomToBond():
-    atom = layers.Input(name='atom', shape=(5,), dtype='float32')
-    connectivity = layers.Input(name='connectivity', shape=(2,), dtype='int32')
+    atom = tf.keras.Input(name='atom', shape=(5,), dtype='float32')
+    connectivity = tf.keras.Input(name='connectivity', shape=(2,), dtype='int32')
 
     gather_layer = GatherAtomToBond(index=1)
     o = gather_layer([atom, connectivity])
-    assert o._keras_shape == (None, 5)
+    assert o.shape.as_list() == [None, 5]
 
     x1 = np.random.rand(2, 5)
     x3 = np.array([[0, 1], [1, 0]])
 
-    model = GraphModel([atom, connectivity], o)
+    model = tf.keras.Model([atom, connectivity], o)
     out = model.predict_on_batch({
         'atom': x1,
         'connectivity': x3})
@@ -55,16 +50,15 @@ def test_GatherAtomToBond():
 
 
 def test_GatherMolToAtomOrBond():
-    global_state = layers.Input(name='global_state', shape=(5,), dtype='float32')
-    node_graph_indices = layers.Input(name='node_graph_indices', shape=(1,), dtype='int32')
+    global_state = tf.keras.Input(name='global_state', shape=(5,), dtype='float32')
+    node_graph_indices = tf.keras.Input(name='node_graph_indices', shape=(1,), dtype='int32')
+    snode = tf.squeeze(node_graph_indices, 1)
 
-    snode = Squeeze()(node_graph_indices)
- 
     layer = GatherMolToAtomOrBond()
     o = layer([global_state, snode])
-    assert o._keras_shape == (None, 5)
+    assert o.shape.as_list() == [None, 5]
 
-    model = GraphModel([global_state, node_graph_indices], o)
+    model = tf.keras.Model(inputs=[global_state, node_graph_indices], outputs=o)
 
     x1 = np.random.rand(2, 5)
     x2 = np.array([0, 0, 0, 1, 1])
@@ -74,16 +68,16 @@ def test_GatherMolToAtomOrBond():
 
 
 def test_ReduceAtomToMol():
-    atom = layers.Input(name='atom', shape=(5,), dtype='float32')
-    node_graph_indices = layers.Input(name='node_graph_indices', shape=(1,), dtype='int32')
+    atom = tf.keras.Input(name='atom', shape=(5,), dtype='float32')
+    node_graph_indices = tf.keras.Input(name='node_graph_indices', shape=(1,), dtype='int32')
 
-    snode = Squeeze()(node_graph_indices)
+    snode = tf.squeeze(node_graph_indices, 1)
  
     reduce_layer = ReduceAtomToMol()
     o = reduce_layer([atom, snode])
-    assert o._keras_shape == (None, 5)
+    assert o.shape.as_list() == [None, 5]
 
-    model = GraphModel([atom, node_graph_indices], o)
+    model = tf.keras.Model([atom, node_graph_indices], o)
 
     x1 = np.random.rand(5, 5)
     x2 = np.array([0, 0, 0, 1, 1])
@@ -95,14 +89,14 @@ def test_ReduceAtomToMol():
 
 
 def test_ReduceBondToAtom():
-    bond = layers.Input(name='bond', shape=(5,), dtype='float32')
-    connectivity = layers.Input(name='connectivity', shape=(2,), dtype='int32')
+    bond = tf.keras.Input(name='bond', shape=(5,), dtype='float32')
+    connectivity = tf.keras.Input(name='connectivity', shape=(2,), dtype='int32')
 
     reduce_layer = ReduceBondToAtom(reducer='max')
     o = reduce_layer([bond, connectivity])
-    assert o._keras_shape == (None, 5)
+    assert o.shape.as_list() == [None, 5]
 
-    model = GraphModel([bond, connectivity], o)
+    model = tf.keras.Model([bond, connectivity], o)
 
     x1 = np.random.rand(5, 5)
     x2 = np.array([[0, 0, 0, 1, 1], [1, 1, 1, 1, 1]]).T
@@ -115,14 +109,14 @@ def test_ReduceBondToAtom():
 
 def test_Embedding2D():
 
-    bond = layers.Input(name='bond', shape=(1,), dtype='int32')
-    sbond = Squeeze()(bond)
-
+    bond = tf.keras.Input(name='bond', shape=(1,), dtype='int32')
+    sbond = tf.squeeze(bond, 1)
+    
     embedding = Embedding2D(3, 5)
     o = embedding(sbond)
-    assert o._keras_shape == (None, 5, 5)
+    assert o.shape.as_list() == [None, 5, 5]
 
-    model = GraphModel([bond], o)
+    model = tf.keras.Model([bond], o)
 
     x1 = np.array([1, 1, 2, 2, 0])
     out = model.predict_on_batch([x1])
@@ -135,14 +129,14 @@ def test_Embedding2D():
 
 def test_EdgeNetwork():
 
-    bond = layers.Input(name='bond', shape=(1,), dtype='int32')
-    distance = layers.Input(name='distance', shape=(1,), dtype='float32')
+    bond = tf.keras.Input(name='bond', shape=(1,), dtype='int32')
+    distance = tf.keras.Input(name='distance', shape=(1,), dtype='float32')
 
     en = EdgeNetwork(5, 3)
     o = en([bond, distance])
-    assert o._keras_shape == (None, 5, 5)
+    assert o.shape.as_list() == [None, 5, 5]
 
-    model = GraphModel([bond, distance], o)
+    model = tf.keras.Model([bond, distance], o)
 
     x1 = np.array([1, 1, 2, 2, 0])
     x2 = np.array([1., 1., 2., 3., .5])
@@ -154,16 +148,16 @@ def test_EdgeNetwork():
 
 
 def test_set2set():
-    atom = layers.Input(name='atom', shape=(5,), dtype='float32')
-    node_graph_indices = layers.Input(name='node_graph_indices', shape=(1,), dtype='int32')
+    atom = tf.keras.Input(name='atom', shape=(5,), dtype='float32')
+    node_graph_indices = tf.keras.Input(name='node_graph_indices', shape=(1,), dtype='int32')
 
-    snode = Squeeze()(node_graph_indices)
+    snode = tf.squeeze(node_graph_indices, 1)
 
     reduce_layer = Set2Set()
     o = reduce_layer([atom, snode])
-    assert o._keras_shape == (None, 10)
+    assert o.shape.as_list() == [None, 10]
 
-    model = GraphModel([atom, node_graph_indices], o)
+    model = tf.keras.Model([atom, node_graph_indices], o)
 
     x1 = np.random.rand(5, 5)
     x2 = np.array([0, 0, 0, 1, 1])

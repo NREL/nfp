@@ -1,6 +1,6 @@
 import numpy as np
 
-from keras.utils import Sequence
+from tensorflow.keras.utils import Sequence
 
 
 class GraphSequence(Sequence):
@@ -23,7 +23,8 @@ class GraphSequence(Sequence):
             final_batch (bool): Whether to include the final, incomplete batch
             seed (int): Initial random seed for the data shuffler
             shuffle_offset (int): How much to offset the indices when shuffling the data.
-                Used during distributed model training to ensure no data overlap between replicas
+                Used during distributed model training to ensure no data
+                overlap between replicas
         """
         self._inputs = inputs
         self._y = y

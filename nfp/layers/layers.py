@@ -1,5 +1,3 @@
-from nfp.layers.wrappers import LSTMStep
-
 from keras.engine import Layer
 
 from keras import activations
@@ -42,11 +40,11 @@ class MessageLayer(Layer):
         self.reducer = reducer
 
         reducer_dict = {
-            None: tf.segment_sum,
-            'sum': tf.segment_sum,
-            'mean': tf.segment_mean,
-            'max': tf.segment_max,
-            'min': tf.segment_min
+            None: tf.math.segment_sum,
+            'sum': tf.math.segment_sum,
+            'mean': tf.math.segment_mean,
+            'max': tf.math.segment_max,
+            'min': tf.math.segment_min
         }
 
         self._reducer = reducer_dict[reducer]
@@ -186,11 +184,11 @@ class Reducer(Layer):
         self.reducer = reducer
 
         reducer_dict = {
-            None: tf.segment_sum,
-            'sum': tf.segment_sum,
-            'mean': tf.segment_mean,
-            'max': tf.segment_max,
-            'min': tf.segment_min
+            None: tf.math.segment_sum,
+            'sum': tf.math.segment_sum,
+            'mean': tf.math.segment_mean,
+            'max': tf.math.segment_max,
+            'min': tf.math.segment_min
         }
 
         self._reducer = reducer_dict[reducer]
@@ -504,12 +502,12 @@ class Set2Set(Layer):
 
             # Compute the attention based on the scalars for each atom
             e_exp = tf.exp(e)
-            e_mol = tf.segment_sum(e_exp, atom_split)  # Sum over molecules
+            e_mol = tf.math.segment_sum(e_exp, atom_split)  # Sum over molecules
             e_mol_expanded = tf.gather(e_mol, atom_split)
             a = e_exp / e_mol_expanded
 
             # Compute the sum
-            r = tf.segment_sum(tf.reshape(a, [-1, 1]) * atom_features, atom_split)
+            r = tf.math.segment_sum(tf.reshape(a, [-1, 1]) * atom_features, atom_split)
 
             # Model using this layer must set pad_batches=True
             q_star = tf.concat([h, r], axis=1)

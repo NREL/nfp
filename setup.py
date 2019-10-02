@@ -13,7 +13,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='nfp',
-    version='0.0.3',
+    version='0.0.4',
     description='Keras layers for machine learning on molecular structure',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -39,7 +39,8 @@ setup(
     ],
 
     packages=find_packages(exclude=['docs', 'tests']),  # Required
-    install_requires=['numpy', 'tqdm', 'keras', 'tensorflow', 'tqdm', 'scikit-learn'],
+    install_requires=['numpy', 'tqdm', 'keras>=2.3.0', 'tensorflow<2.0',
+                      'tqdm', 'scikit-learn'],
 
     project_urls={
         'Source': 'https://github.com/NREL/nfp',

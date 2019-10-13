@@ -10,10 +10,9 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
-
 setup(
     name='nfp',
-    version='0.0.4',
+    version='0.0.5',
     description='Keras layers for machine learning on molecular structure',
     long_description=long_description,
     long_description_content_type='text/markdown',

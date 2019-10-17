@@ -1,7 +1,6 @@
 numpy
 tqdm
 tensorflow<2.0
-tqdm
 scikit-learn
 keras>=2.3.0
 pytest

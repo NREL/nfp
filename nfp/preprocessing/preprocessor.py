@@ -1,5 +1,3 @@
-import logging
-
 import numpy as np
 from tqdm import tqdm
 
@@ -46,26 +44,28 @@ class SmilesPreprocessor(object):
         self.bond_features = bond_features
 
 
-    def fit(self, smiles_iterator):
+    def fit(self, smiles_iterator, verbose=True):
         """ Fit an iterator of SMILES strings, creating new atom and bond
         tokens for unseen molecules. Returns a dictionary with 'atom' and
         'connectivity' entries """
-        return list(self.preprocess(smiles_iterator, train=True))
+        return list(self.preprocess(smiles_iterator, train=True,
+                                    verbose=verbose))
 
 
-    def predict(self, smiles_iterator):
+    def predict(self, smiles_iterator, verbose=True):
         """ Uses previously determined atom and bond tokens to convert a SMILES
         iterator into 'atom' and 'connectivity' matrices. Ensures that atom and
         bond classes commute with previously determined results. """
-        return list(self.preprocess(smiles_iterator, train=False))
+        return list(self.preprocess(smiles_iterator, train=False,
+                                    verbose=verbose))
 
 
-    def preprocess(self, smiles_iterator, train=True):
+    def preprocess(self, smiles_iterator, train=True, verbose=True):
 
         self.atom_tokenizer.train = train
         self.bond_tokenizer.train = train
 
-        for smiles in tqdm(smiles_iterator):
+        for smiles in tqdm(smiles_iterator, disable=not verbose):
             yield self.construct_feature_matrices(smiles)
 
 

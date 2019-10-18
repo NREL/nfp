@@ -7,7 +7,7 @@ import tensorflow as tf
 import keras.losses
 
 def masked_mean_squared_error(y_true, y_pred):
-    mask = tf.is_finite(y_true)
+    mask = tf.math.is_finite(y_true)
     y_true_mask = tf.boolean_mask(y_true, mask)
     y_pred_mask = tf.boolean_mask(y_pred, mask)
     return K.mean(K.square(y_pred_mask - y_true_mask), axis=-1)

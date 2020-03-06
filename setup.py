@@ -12,7 +12,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 # Fields marked as "Optional" may be commented out.
 setup(
     name='nfp',
-    version='0.0.6',
+    version='0.0.7',
     description='Keras layers for machine learning on molecular structure',
     long_description=long_description,
     long_description_content_type='text/markdown',

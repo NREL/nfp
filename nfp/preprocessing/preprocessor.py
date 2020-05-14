@@ -3,11 +3,15 @@ import logging
 import numpy as np
 from tqdm import tqdm
 
+import tensorflow as tf
+
 from rdkit import Chem
 from rdkit.Chem import MolFromSmiles, MolToSmiles, AddHs
 
 from nfp.preprocessing import features
 from nfp.preprocessing.features import Tokenizer
+
+zero = tf.constant(0, dtype=tf.int64)
 
 
 class SmilesPreprocessor(object):
@@ -50,18 +54,20 @@ class SmilesPreprocessor(object):
         self.max_bonds = 0
 
     @property
+    def example(self):
+        return self.construct_feature_matrices('CC', train=False)
+        
+    @property
     def atom_classes(self):
         """ The number of atom types found (includes the 0 null-atom type) """
         return self.atom_tokenizer.num_classes + 1
-
 
     @property
     def bond_classes(self):
         """ The number of bond types found (includes the 0 null-bond type) """
         return self.bond_tokenizer.num_classes + 1
 
-
-    def construct_feature_matrices(self, smiles):
+    def construct_feature_matrices(self, smiles, train=True):
         """ construct a molecule from the given smiles string and return atom
         and bond classes.
 
@@ -74,6 +80,9 @@ class SmilesPreprocessor(object):
         'connectivity' : (n_bond, 2) array of source atom, target atom pairs.
 
         """
+        
+        self.atom_tokenizer.train = train
+        self.bond_tokenizer.train = train
 
         logger = logging.getLogger(__name__)
         mol = MolFromSmiles(smiles)
@@ -125,10 +134,11 @@ class SmilesPreprocessor(object):
                 bond_index += 1
 
         # Track the largest atom and bonds seen 
-        if n_atom > self.max_atoms:
-            self.max_atoms = n_atom
-        if mol.GetNumBonds() > self.max_bonds:
-            self.max_bonds = mol.GetNumBonds()
+        if train:
+            if n_atom > self.max_atoms:
+                self.max_atoms = n_atom
+            if mol.GetNumBonds() > self.max_bonds:
+                self.max_bonds = mol.GetNumBonds()
 
         return {
             'n_atom': n_atom,
@@ -138,6 +148,49 @@ class SmilesPreprocessor(object):
             'bond': bond_feature_matrix,
             'connectivity': connectivity,
         }
+    
+    tfrecord_features = {
+        'n_atom': tf.io.FixedLenFeature([], dtype=tf.int64),
+        'n_bond': tf.io.FixedLenFeature([], dtype=tf.int64),
+        'bond_indices': tf.io.FixedLenFeature([], dtype=tf.string),
+        'atom': tf.io.FixedLenFeature([], dtype=tf.string),
+        'bond': tf.io.FixedLenFeature([], dtype=tf.string),
+        'connectivity': tf.io.FixedLenFeature([], dtype=tf.string)
+    }
+    
+    output_types = {'n_atom': tf.int64,
+                    'n_bond': tf.int64,
+                    'bond_indices': tf.int64,            
+                    'atom': tf.int64,
+                    'bond': tf.int64,
+                    'connectivity': tf.int64}
+
+    output_shapes = {'n_atom': tf.TensorShape([]),
+                     'n_bond': tf.TensorShape([]),
+                     'bond_indices': tf.TensorShape([None]),            
+                     'atom': tf.TensorShape([None]),
+                     'bond': tf.TensorShape([None]),
+                     'connectivity': tf.TensorShape([None, None])}
+    
+    @staticmethod
+    def padded_shapes(max_atoms=-1, max_bonds=-1):
+        return {
+            'n_atom': [],
+            'n_bond': [],
+            'bond_indices': [max_bonds],
+            'atom': [max_atoms],
+            'bond': [max_bonds],
+            'connectivity': [max_bonds, 2]
+        }
+    
+    padding_values = {
+        'n_atom': zero,
+        'n_bond': zero,
+        'bond_indices': zero,
+        'atom': zero,
+        'bond': zero,
+        'connectivity': zero
+    }
     
 
 

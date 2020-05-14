@@ -44,30 +44,10 @@ class SmilesPreprocessor(object):
 
         self.atom_features = atom_features
         self.bond_features = bond_features
-
-
-    def fit(self, smiles_iterator):
-        """ Fit an iterator of SMILES strings, creating new atom and bond
-        tokens for unseen molecules. Returns a dictionary with 'atom' and
-        'connectivity' entries """
-        return list(self.preprocess(smiles_iterator, train=True))
-
-
-    def predict(self, smiles_iterator):
-        """ Uses previously determined atom and bond tokens to convert a SMILES
-        iterator into 'atom' and 'connectivity' matrices. Ensures that atom and
-        bond classes commute with previously determined results. """
-        return list(self.preprocess(smiles_iterator, train=False))
-
-
-    def preprocess(self, smiles_iterator, train=True):
-
-        self.atom_tokenizer.train = train
-        self.bond_tokenizer.train = train
-
-        for smiles in tqdm(smiles_iterator):
-            yield self.construct_feature_matrices(smiles)
-
+        
+        # Keep track of biggest molecules seen in training
+        self.max_atoms = 0
+        self.max_bonds = 0
 
     @property
     def atom_classes(self):
@@ -95,27 +75,26 @@ class SmilesPreprocessor(object):
 
         """
 
+        logger = logging.getLogger(__name__)
         mol = MolFromSmiles(smiles)
         if self.explicit_hs:
             mol = AddHs(mol)
 
-        n_atom = len(mol.GetAtoms())
-        n_bond = 2 * len(mol.GetBonds())
+        n_atom = mol.GetNumAtoms()
+        n_bond = 2 * mol.GetNumBonds()
 
         # If its an isolated atom, add a self-link
         if n_bond == 0:
             n_bond = 1
+            logger.warning(f'Found molecule {smiles} with zero bonds')
         
         atom_feature_matrix = np.zeros(n_atom, dtype='int')
         bond_feature_matrix = np.zeros(n_bond, dtype='int')
+        bond_indices = np.zeros(n_bond, dtype='int')                
         connectivity = np.zeros((n_bond, 2), dtype='int')
 
         bond_index = 0
-
-        atom_seq = mol.GetAtoms()
-        atoms = [atom_seq[i] for i in range(n_atom)]
-
-        for n, atom in enumerate(atoms):
+        for n, atom in enumerate(mol.GetAtoms()):
 
             # Atom Classes
             atom_feature_matrix[n] = self.atom_tokenizer(
@@ -130,6 +109,9 @@ class SmilesPreprocessor(object):
                 # Bond Classes
                 bond_feature_matrix[bond_index] = self.bond_tokenizer(
                     self.bond_features(bond, flipped=rev))
+                
+                # Connect edges to original bonds
+                bond_indices[bond_index] = bond.GetIdx()                
 
                 # Connectivity
                 if not rev:  # Original direction
@@ -142,10 +124,16 @@ class SmilesPreprocessor(object):
 
                 bond_index += 1
 
+        # Track the largest atom and bonds seen 
+        if n_atom > self.max_atoms:
+            self.max_atoms = n_atom
+        if mol.GetNumBonds() > self.max_bonds:
+            self.max_bonds = mol.GetNumBonds()
 
         return {
             'n_atom': n_atom,
-            'n_bond': n_bond,
+            'n_bond': mol.GetNumBonds(),  # the real number of bonds
+            'bond_indices': bond_indices,
             'atom': atom_feature_matrix,
             'bond': bond_feature_matrix,
             'connectivity': connectivity,
@@ -153,116 +141,116 @@ class SmilesPreprocessor(object):
     
 
 
-class MolPreprocessor(SmilesPreprocessor):
-    """ I should refactor this into a base class and separate
-    SmilesPreprocessor classes. But the idea is that we only need to redefine
-    the `construct_feature_matrices` method to have a working preprocessor that
-    handles 3D structures. 
+# class MolPreprocessor(SmilesPreprocessor):
+#     """ I should refactor this into a base class and separate
+#     SmilesPreprocessor classes. But the idea is that we only need to redefine
+#     the `construct_feature_matrices` method to have a working preprocessor that
+#     handles 3D structures. 
 
-    We'll pass an iterator of mol objects instead of SMILES strings this time,
-    though.
+#     We'll pass an iterator of mol objects instead of SMILES strings this time,
+#     though.
     
-    """
+#     """
 
-    def __init__(self, n_neighbors, **kwargs):
-        """ A preprocessor class that also returns distances between
-        neighboring atoms. Adds edges for non-bonded atoms to include a maximum
-        of n_neighbors around each atom """
+#     def __init__(self, n_neighbors, **kwargs):
+#         """ A preprocessor class that also returns distances between
+#         neighboring atoms. Adds edges for non-bonded atoms to include a maximum
+#         of n_neighbors around each atom """
 
-        self.n_neighbors = n_neighbors
-        super(MolPreprocessor, self).__init__(**kwargs)
+#         self.n_neighbors = n_neighbors
+#         super(MolPreprocessor, self).__init__(**kwargs)
 
 
-    def construct_feature_matrices(self, mol):
-        """ Given an rdkit mol, return atom feature matrices, bond feature
-        matrices, and connectivity matrices.
+#     def construct_feature_matrices(self, mol):
+#         """ Given an rdkit mol, return atom feature matrices, bond feature
+#         matrices, and connectivity matrices.
 
-        Returns
-        dict with entries
-        'n_atom' : number of atoms in the molecule
-        'n_bond' : number of edges (likely n_atom * n_neighbors)
-        'atom' : (n_atom,) length list of atom classes
-        'bond' : (n_bond,) list of bond classes. 0 for no bond
-        'distance' : (n_bond,) list of bond distances
-        'connectivity' : (n_bond, 2) array of source atom, target atom pairs.
+#         Returns
+#         dict with entries
+#         'n_atom' : number of atoms in the molecule
+#         'n_bond' : number of edges (likely n_atom * n_neighbors)
+#         'atom' : (n_atom,) length list of atom classes
+#         'bond' : (n_bond,) list of bond classes. 0 for no bond
+#         'distance' : (n_bond,) list of bond distances
+#         'connectivity' : (n_bond, 2) array of source atom, target atom pairs.
             
-        """
+#         """
 
-        n_atom = len(mol.GetAtoms())
+#         n_atom = len(mol.GetAtoms())
 
-        # n_bond is actually the number of atom-atom pairs, so this is defined
-        # by the number of neighbors for each atom.
-        if self.n_neighbors <= (n_atom - 1):
-            n_bond = self.n_neighbors * n_atom
-        elif n_atom == 1:
-            n_bond = 1
-        else:
-            # If there are fewer atoms than n_neighbors, all atoms will be
-            # connected
-            n_bond = (n_atom - 1) * n_atom
+#         # n_bond is actually the number of atom-atom pairs, so this is defined
+#         # by the number of neighbors for each atom.
+#         if self.n_neighbors <= (n_atom - 1):
+#             n_bond = self.n_neighbors * n_atom
+#         elif n_atom == 1:
+#             n_bond = 1
+#         else:
+#             # If there are fewer atoms than n_neighbors, all atoms will be
+#             # connected
+#             n_bond = (n_atom - 1) * n_atom
 
-        # Initialize the matrices to be filled in during the following loop.
-        atom_feature_matrix = np.zeros(n_atom, dtype='int')
-        bond_feature_matrix = np.zeros(n_bond, dtype='int')
-        bond_distance_matrix = np.zeros(n_bond, dtype=np.float32)
-        connectivity = np.zeros((n_bond, 2), dtype='int')
+#         # Initialize the matrices to be filled in during the following loop.
+#         atom_feature_matrix = np.zeros(n_atom, dtype='int')
+#         bond_feature_matrix = np.zeros(n_bond, dtype='int')
+#         bond_distance_matrix = np.zeros(n_bond, dtype=np.float32)
+#         connectivity = np.zeros((n_bond, 2), dtype='int')
 
-        # Hopefully we've filtered out all problem mols by now.
-        if mol is None:
-            raise RuntimeError("Issue in loading mol")
+#         # Hopefully we've filtered out all problem mols by now.
+#         if mol is None:
+#             raise RuntimeError("Issue in loading mol")
         
-        distance_matrix = Chem.Get3DDistanceMatrix(mol)
+#         distance_matrix = Chem.Get3DDistanceMatrix(mol)
 
-        # Get a list of the atoms in the molecule.
-        atom_seq = mol.GetAtoms()
-        atoms = [atom_seq[i] for i in range(n_atom)]
+#         # Get a list of the atoms in the molecule.
+#         atom_seq = mol.GetAtoms()
+#         atoms = [atom_seq[i] for i in range(n_atom)]
 
-        # Here we loop over each atom, and the inner loop iterates over each
-        # neighbor of the current atom.
-        bond_index = 0  # keep track of our current bond.
-        for n, atom in enumerate(atoms):
+#         # Here we loop over each atom, and the inner loop iterates over each
+#         # neighbor of the current atom.
+#         bond_index = 0  # keep track of our current bond.
+#         for n, atom in enumerate(atoms):
             
-            # update atom feature matrix
-            atom_feature_matrix[n] = self.atom_tokenizer(
-                self.atom_features(atom))
+#             # update atom feature matrix
+#             atom_feature_matrix[n] = self.atom_tokenizer(
+#                 self.atom_features(atom))
             
-            # if n_neighbors is greater than total atoms, then each atom is a
-            # neighbor.
-            if (self.n_neighbors + 1) > len(mol.GetAtoms()):
-                end_index = len(mol.GetAtoms())
-            else:
-                end_index = (self.n_neighbors + 1)
+#             # if n_neighbors is greater than total atoms, then each atom is a
+#             # neighbor.
+#             if (self.n_neighbors + 1) > len(mol.GetAtoms()):
+#                 end_index = len(mol.GetAtoms())
+#             else:
+#                 end_index = (self.n_neighbors + 1)
 
-            # Loop over each of the nearest neighbors
-            neighbor_inds = distance_matrix[n, :].argsort()[1:end_index]
-            for neighbor in neighbor_inds:
+#             # Loop over each of the nearest neighbors
+#             neighbor_inds = distance_matrix[n, :].argsort()[1:end_index]
+#             for neighbor in neighbor_inds:
                 
-                # update bond feature matrix
-                bond = mol.GetBondBetweenAtoms(n, int(neighbor))
-                if bond is None:
-                    bond_feature_matrix[bond_index] = 0
-                else:
-                    rev = False if bond.GetBeginAtomIdx() == n else True
-                    bond_feature_matrix[bond_index] = self.bond_tokenizer(
-                        self.bond_features(bond, flipped=rev))
+#                 # update bond feature matrix
+#                 bond = mol.GetBondBetweenAtoms(n, int(neighbor))
+#                 if bond is None:
+#                     bond_feature_matrix[bond_index] = 0
+#                 else:
+#                     rev = False if bond.GetBeginAtomIdx() == n else True
+#                     bond_feature_matrix[bond_index] = self.bond_tokenizer(
+#                         self.bond_features(bond, flipped=rev))
 
-                distance = distance_matrix[n, neighbor]
-                bond_distance_matrix[bond_index] = distance
+#                 distance = distance_matrix[n, neighbor]
+#                 bond_distance_matrix[bond_index] = distance
                 
-                # update connectivity matrix
-                connectivity[bond_index, 0] = n
-                connectivity[bond_index, 1] = neighbor
+#                 # update connectivity matrix
+#                 connectivity[bond_index, 0] = n
+#                 connectivity[bond_index, 1] = neighbor
                 
-                bond_index += 1
+#                 bond_index += 1
 
-        return {
-            'n_atom': n_atom,
-            'n_bond': n_bond,
-            'atom': atom_feature_matrix,
-            'bond': bond_feature_matrix,
-            'distance': bond_distance_matrix,
-            'connectivity': connectivity,
-        }
+#         return {
+#             'n_atom': n_atom,
+#             'n_bond': n_bond,
+#             'atom': atom_feature_matrix,
+#             'bond': bond_feature_matrix,
+#             'distance': bond_distance_matrix,
+#             'connectivity': connectivity,
+#         }
 
 
 # TODO: rewrite this                                

@@ -107,4 +107,6 @@ venv.bak/
 *.sw[op]
 
 Untitled*
-examples/test.tf
+examples/*.tfrecord
+examples/*.p
+examples/*.h5

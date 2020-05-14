@@ -5,7 +5,7 @@ import pytest
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-from nfp.preprocessing import SmilesPreprocessor, MolPreprocessor
+from nfp.preprocessing import SmilesPreprocessor
 
 @pytest.fixture()
 def get_2d_smiles():
@@ -44,48 +44,27 @@ def test_smiles_preprocessor(explicit_hs, get_2d_smiles):
     train, test = get_2d_smiles
 
     preprocessor = SmilesPreprocessor(explicit_hs=explicit_hs)
-    inputs = preprocessor.fit(train)
+    inputs = [preprocessor.construct_feature_matrices(smiles) for smiles in train]
 
     # Make sure all bonds and atoms get a valid class
     for input_ in inputs:
         if input_['n_atom'] > 1:
             assert (input_['bond'] != 0).all()
         assert (input_['atom'] != 0).all()
-
         assert (input_['bond'] != 1).all()
         assert (input_['atom'] != 1).all()
 
     if not explicit_hs:
         assert inputs[0]['n_atom'] == 2
-        assert inputs[0]['n_bond'] == 2
+        assert inputs[0]['n_bond'] == 1
 
     else:
         assert inputs[0]['n_atom'] == 8
-        assert inputs[0]['n_bond'] == 14
+        assert inputs[0]['n_bond'] == 7
 
-
-    test_inputs = preprocessor.predict(test)
-
-    for input_ in test_inputs:
-        assert (input_['bond'] == 1).any()
-        assert (input_['atom'] == 1).any()
-    
-
-def test_mol_preprocessor(get_3d_smiles):
-
-    train, test = get_3d_smiles
-
-    preprocessor = MolPreprocessor(n_neighbors=4)
-    train_inputs = preprocessor.fit(train)
-
-    for input_ in train_inputs:
-        assert (input_['bond'] != 1).all()
-        assert (input_['atom'] != 1).all()
-        assert (input_['distance'] >= 0).all()
-
-    np.testing.assert_allclose(train_inputs[-1]['bond'][:4], 2)
-
-    test_inputs = preprocessor.predict(test)
+    preprocessor.atom_tokenizer.train = False
+    preprocessor.bond_tokenizer.train = False
+    test_inputs = [preprocessor.construct_feature_matrices(smiles) for smiles in test]
 
     for input_ in test_inputs:
         assert (input_['bond'] == 1).any()

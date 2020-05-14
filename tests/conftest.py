@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from nfp.preprocessing import SmilesPreprocessor, MolPreprocessor, GraphSequence
+from nfp.preprocessing import SmilesPreprocessor
 
 
 smiles = [
@@ -38,33 +38,3 @@ def get_2d_data():
     inputs = preprocessor.fit(smiles)
     y = np.random.rand(len(smiles))
     return inputs, y
-
-
-@pytest.fixture(scope="module")
-def get_2d_sequence():
-
-    preprocessor = SmilesPreprocessor(explicit_hs=False)
-    inputs = preprocessor.fit(smiles)
-    y = np.random.rand(len(smiles))
-    sequence = GraphSequence(inputs, y, batch_size=10, shuffle=False,
-                             final_batch=False)
-    
-    return preprocessor, sequence
-
-@pytest.fixture(scope="module")
-def get_3d_sequence():
-
-    def embed_3d(smiles):
-        mol = Chem.MolFromSmiles(smiles)
-        AllChem.EmbedMolecule(mol)
-        AllChem.MMFFOptimizeMolecule(mol, maxIters=1000)
-        return mol
-
-    preprocessor = MolPreprocessor(n_neighbors=5)
-    inputs = preprocessor.fit([embed_3d(smile) for smile in smiles])
-    y = np.random.rand(len(smiles))
-    sequence = GraphSequence(inputs, y, batch_size=10, shuffle=False,
-                             final_batch=False)
-
-    return preprocessor, sequence
-

@@ -1,15 +1,11 @@
 from .layers import *
 from .models import *
+from .preprocessing import *
 
-custom_layers = {
-    'MessageLayer': MessageLayer,
-    'EdgeNetwork': EdgeNetwork,
-    'ReduceAtomToMol': ReduceAtomToMol,
-    'ReduceAtomOrBondToMol': ReduceAtomOrBondToMol,
-    'ReduceBondToAtom': ReduceBondToAtom,
-    'GatherAtomToBond': GatherAtomToBond,
-    'GatherMolToAtomOrBond': GatherMolToAtomOrBond,
-    'Embedding2D': Embedding2D,
+custom_objects = {
+    'Slice': Slice,
+    'Gather': Gather,
+    'Reduce': Reduce,
     'masked_mean_squared_error': masked_mean_squared_error,
     'masked_mean_absolute_error': masked_mean_absolute_error,
     'masked_log_cosh': masked_log_cosh

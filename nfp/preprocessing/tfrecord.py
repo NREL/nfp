@@ -25,4 +25,4 @@ def serialize_value(value):
     elif type(value) == float:
         return _float_feature(value)
     else:
-        raise TypeError
+        raise TypeError(f"Didn't recognize type {type(value)}")

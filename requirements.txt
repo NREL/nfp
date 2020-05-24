@@ -1,7 +1,5 @@
 numpy
-tqdm
-tensorflow
+tensorflow>2.0
 tqdm
 scikit-learn
--e git://github.com/keras-team/keras.git#egg=keras
 pytest

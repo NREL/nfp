@@ -44,7 +44,8 @@ def test_smiles_preprocessor(explicit_hs, get_2d_smiles):
     train, test = get_2d_smiles
 
     preprocessor = SmilesPreprocessor(explicit_hs=explicit_hs)
-    inputs = [preprocessor.construct_feature_matrices(smiles) for smiles in train]
+    inputs = [preprocessor.construct_feature_matrices(smiles, train=True) for
+              smiles in train]
 
     # Make sure all bonds and atoms get a valid class
     for input_ in inputs:
@@ -62,9 +63,8 @@ def test_smiles_preprocessor(explicit_hs, get_2d_smiles):
         assert inputs[0]['n_atom'] == 8
         assert inputs[0]['n_bond'] == 7
 
-    preprocessor.atom_tokenizer.train = False
-    preprocessor.bond_tokenizer.train = False
-    test_inputs = [preprocessor.construct_feature_matrices(smiles) for smiles in test]
+    test_inputs = [preprocessor.construct_feature_matrices(smiles, train=False)
+                   for smiles in test]
 
     for input_ in test_inputs:
         assert (input_['bond'] == 1).any()

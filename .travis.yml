@@ -12,7 +12,7 @@ before_install:
 
 
 install:
-  - conda create -q -n test -c conda-forge python=$PYTHON_VERSION rdkit pytest tqdm scikit-learn scipy tensorflow
+  - conda create -q -n test -c conda-forge python=$PYTHON_VERSION rdkit pytest tqdm tensorflow
   - source activate test
 
   # Quick test to make sure rdkit is working

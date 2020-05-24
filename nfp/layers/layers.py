@@ -20,7 +20,7 @@ def batched_segment_op(data,
     """
 
     if data_mask is None:
-        data_mask = tf.ones(tf.shape(data), dtype=tf.bool)
+        data_mask = tf.ones(tf.shape(data)[:-1], dtype=tf.bool)
 
     # Prior to flattening, offset rows of segment_ids to preserve batches
     batch_size = tf.shape(data, out_type=segment_ids.dtype)[0]

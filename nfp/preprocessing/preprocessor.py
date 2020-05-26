@@ -1,18 +1,17 @@
 import logging
+import json
 
 import numpy as np
 from tqdm import tqdm
 
 import tensorflow as tf
 
-from rdkit import Chem
 from rdkit.Chem import MolFromSmiles, MolToSmiles, AddHs
 
 from nfp.preprocessing import features
 from nfp.preprocessing.features import Tokenizer
 
 zero = tf.constant(0, dtype=tf.int64)
-
 
 class SmilesPreprocessor(object):
     """ Given a list of SMILES strings, encode these molecules as atom and
@@ -53,10 +52,17 @@ class SmilesPreprocessor(object):
         self.max_atoms = 0
         self.max_bonds = 0
 
-    @property
-    def example(self):
-        return self.construct_feature_matrices('CC', train=False)
-        
+    def to_json(self, filename):
+        with open(filename, 'w') as f:
+            return json.dump(self, f, default=lambda x: x.__dict__)
+
+    def from_json(self, filename):
+        with open(filename, 'r') as f:
+            json_data = json.load(f)
+
+        load_from_json(self, json_data)
+
+
     @property
     def atom_classes(self):
         """ The number of atom types found (includes the 0 null-atom type) """
@@ -193,6 +199,12 @@ class SmilesPreprocessor(object):
     }
     
 
+def load_from_json(obj, data):
+    for key, val in obj.__dict__.items():
+        if type(val) == type(data[key]):
+            obj.__dict__[key] = data[key]
+        elif hasattr(val, '__dict__'):
+            load_from_json(val, data[key])
 
 # class MolPreprocessor(SmilesPreprocessor):
 #     """ I should refactor this into a base class and separate

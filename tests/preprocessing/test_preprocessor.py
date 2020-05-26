@@ -1,7 +1,7 @@
-import pandas as pd
-import numpy as np
-
 import pytest
+import json
+import tempfile
+
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
@@ -69,3 +69,29 @@ def test_smiles_preprocessor(explicit_hs, get_2d_smiles):
     for input_ in test_inputs:
         assert (input_['bond'] == 1).any()
         assert (input_['atom'] == 1).any()
+
+
+@pytest.mark.parametrize('explicit_hs', [True, False])
+def test_smiles_preprocessor_serialization(explicit_hs, get_2d_smiles):
+
+    train, test = get_2d_smiles
+
+    preprocessor = SmilesPreprocessor(explicit_hs=explicit_hs)
+    input_train = [preprocessor.construct_feature_matrices(smiles, train=True)
+                   for smiles in train]
+    input_test = [preprocessor.construct_feature_matrices(smiles, train=False)
+                  for smiles in test]
+
+    with tempfile.NamedTemporaryFile(suffix='.json') as file:
+        preprocessor.to_json(file.name)
+        del preprocessor
+        preprocessor = SmilesPreprocessor()
+        preprocessor.from_json(file.name)
+
+    input_train_new = [preprocessor.construct_feature_matrices(
+        smiles, train=True) for smiles in train]
+    input_test_new = [preprocessor.construct_feature_matrices(
+        smiles, train=False) for smiles in test]
+
+    assert str(input_train) == str(input_train_new)
+    assert str(input_test) == str(input_test_new)

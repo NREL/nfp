@@ -1,3 +1,5 @@
+__version__ = '0.1.2'
+
 from .layers import *
 from .models import *
 from .preprocessing import *

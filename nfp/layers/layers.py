@@ -94,3 +94,26 @@ class Reduce(layers.Layer):
 
     def get_config(self):
         return {'reduction': self.reduction}
+
+
+class ConcatDense(layers.Layer):
+    """ Layer to combine the concatenation and two dense layers. Just useful as a common operation in the graph layers """
+    def build(self, input_shape):
+        num_features = input_shape[0][-1]
+        self.concat = layers.Concatenate()
+        self.dense1 = layers.Dense(2 * num_features, activation='relu')
+        self.dense2 = layers.Dense(num_features)        
+        
+    def call(self, inputs, mask=None):
+        output = self.concat(inputs)
+        output = self.dense1(output)
+        output = self.dense2(output)
+        return output
+
+
+class Tile(layers.Layer):    
+    def call(self, inputs):
+        global_state, target = inputs
+        target_shape = tf.shape(target)[1]  # number of edges or nodes
+        expanded = tf.expand_dims(global_state, 1)
+        return tf.tile(expanded, tf.stack([1, target_shape, 1]))

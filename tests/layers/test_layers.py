@@ -70,3 +70,23 @@ def test_reduce(smiles_inputs, method):
     assert_allclose(atom_reduced[0, 4, :], bond_state[0, 11, :], 0)
     assert_allclose(atom_reduced[0, 5, :], bond_state[0, 12, :], 0)
     # assert_allclose(atom_reduced[0, 8:, :], 0.)
+
+
+def test_tile():
+    state = layers.Input(shape=[None], dtype='float', name='data')
+    target = layers.Input(shape=[None, 3], dtype=tf.int64, name='indices')
+
+    tile = nfp.Tile()([state, target])
+
+    model = tf.keras.Model([state, target], [tile])
+
+    state_input = np.random.rand(10, 16).astype(np.float32)
+    target_input = np.random.rand(10, 24, 3).astype(np.float32)
+
+    out = model([state_input, target_input])
+
+    shape = list(state_input.shape)
+    shape.insert(1, target_input.shape[1])
+
+    assert list(out.shape) == shape
+    assert np.all(out[:, 0, :] == out[:, 1, :])

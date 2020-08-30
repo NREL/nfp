@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 
-import nfp.layers as nlayers
+import nfp
 
 class GraphLayer(layers.Layer):
     """ Base class for all GNN layers """
@@ -14,7 +14,7 @@ class GraphLayer(layers.Layer):
     def build(self, input_shape):
         if len(input_shape) == 4:
             self.use_global = True
-            self.tile = nlayers.Tile()
+            self.tile = nfp.Tile()
             
         elif len(input_shape) == 3:
             self.use_global = False
@@ -36,11 +36,11 @@ class EdgeUpdate(GraphLayer):
         """
         super().build(input_shape)
         
-        self.gather = nlayers.Gather()
-        self.slice1 = nlayers.Slice(np.s_[:, :, 1])
-        self.slice0 = nlayers.Slice(np.s_[:, :, 0])
+        self.gather = nfp.Gather()
+        self.slice1 = nfp.Slice(np.s_[:, :, 1])
+        self.slice0 = nfp.Slice(np.s_[:, :, 0])
         
-        self.concat = nlayers.ConcatDense()
+        self.concat = nfp.ConcatDense()
         self.add = layers.Add()
         
     
@@ -79,12 +79,12 @@ class NodeUpdate(GraphLayer):
         
         num_features = input_shape[1][-1]
         
-        self.gather = nlayers.Gather()
-        self.slice0 = nlayers.Slice(np.s_[:, :, 0])        
-        self.slice1 = nlayers.Slice(np.s_[:, :, 1])
+        self.gather = nfp.Gather()
+        self.slice0 = nfp.Slice(np.s_[:, :, 0])        
+        self.slice1 = nfp.Slice(np.s_[:, :, 1])
 
-        self.concat = nlayers.ConcatDense()
-        self.reduce = nlayers.Reduce(reduction='sum')
+        self.concat = nfp.ConcatDense()
+        self.reduce = nfp.Reduce(reduction='sum')
         
         self.dense1 = layers.Dense(2 * num_features, activation='relu')
         self.dense2 = layers.Dense(num_features)            

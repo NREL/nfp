@@ -1,4 +1,4 @@
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 from .layers import *
 from .models import *
@@ -10,5 +10,8 @@ custom_objects = {
     'Reduce': Reduce,
     'masked_mean_squared_error': masked_mean_squared_error,
     'masked_mean_absolute_error': masked_mean_absolute_error,
-    'masked_log_cosh': masked_log_cosh
+    'masked_log_cosh': masked_log_cosh,
+    'EdgeUpdate': EdgeUpdate,
+    'NodeUpdate': NodeUpdate,
+    'GlobalUpdate': GlobalUpdate
 }

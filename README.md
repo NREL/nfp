@@ -15,7 +15,6 @@ Keras layers for end-to-end learning on molecular structure. Based on Keras, Ten
 ## (Main) Requirements
 
 - [rdkit](http://www.rdkit.org/docs/Install.html)
-- keras (github master, until [#11548](https://github.com/keras-team/keras/pull/11548) is included in a release)
 - tensorflow
 
 ## Getting started

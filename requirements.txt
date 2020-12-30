@@ -2,5 +2,5 @@ numpy
 tqdm
 tensorflow<2.0
 scikit-learn
-keras>=2.3.0
+keras>=2.3.0,<2.4.0
 pytest

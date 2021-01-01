@@ -4,6 +4,7 @@ values in both the test and predicted tensors when computing the cost. """
 
 import tensorflow as tf
 
+
 def masked_mean_squared_error(y_true, y_pred):
     mask = tf.math.is_finite(y_true)
     y_true_mask = tf.boolean_mask(tensor=y_true, mask=mask)

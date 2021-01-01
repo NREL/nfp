@@ -1,16 +1,14 @@
+import numpy as np
 import pytest
-
 import tensorflow as tf
 from tensorflow.keras import layers
 
-import numpy as np
-
 import nfp
+
 
 @pytest.mark.parametrize('layer', [nfp.EdgeUpdate, nfp.NodeUpdate])
 @pytest.mark.parametrize("dropout", [0., 0.5])
 def test_layer(smiles_inputs, layer, dropout):
-
     preprocessor, inputs = smiles_inputs
 
     atom_class = layers.Input(shape=[11], dtype=tf.int64, name='atom')
@@ -25,7 +23,7 @@ def test_layer(smiles_inputs, layer, dropout):
     update_global = layer(dropout=dropout)([atom_state, bond_state,
                                             connectivity, global_state])
 
-    model = tf.keras.Model([atom_class, bond_class, connectivity], 
+    model = tf.keras.Model([atom_class, bond_class, connectivity],
                            [update, update_global])
 
     update_state, update_state_global = model(
@@ -37,7 +35,6 @@ def test_layer(smiles_inputs, layer, dropout):
 
 @pytest.mark.parametrize("dropout", [0., 0.5])
 def test_global(smiles_inputs, dropout):
-
     preprocessor, inputs = smiles_inputs
 
     atom_class = layers.Input(shape=[11], dtype=tf.int64, name='atom')
@@ -53,7 +50,7 @@ def test_global(smiles_inputs, dropout):
     update_global = nfp.GlobalUpdate(8, 2, dropout=dropout)(
         [atom_state, bond_state, connectivity, global_state])
 
-    model = tf.keras.Model([atom_class, bond_class, connectivity], 
+    model = tf.keras.Model([atom_class, bond_class, connectivity],
                            [update, update_global])
 
     update_state, update_state_global = model(

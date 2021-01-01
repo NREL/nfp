@@ -1,15 +1,13 @@
-import pytest
-
-import tensorflow as tf
-from tensorflow.keras import layers
-
 import numpy as np
+import pytest
+import tensorflow as tf
 from numpy.testing import assert_allclose
+from tensorflow.keras import layers
 
 import nfp
 
-def test_slice():
 
+def test_slice():
     connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name='connectivity')
 
     out0 = nfp.Slice(np.s_[:, :, 0])(connectivity)
@@ -26,7 +24,6 @@ def test_slice():
 
 
 def test_gather():
-
     in1 = layers.Input(shape=[None], dtype='float', name='data')
     in2 = layers.Input(shape=[None], dtype=tf.int64, name='indices')
 
@@ -43,7 +40,6 @@ def test_gather():
 
 @pytest.mark.parametrize('method', ['sum', 'mean', 'max', 'min', 'prod'])
 def test_reduce(smiles_inputs, method):
-
     preprocessor, inputs = smiles_inputs
     func = getattr(np, method)
 
@@ -60,8 +56,8 @@ def test_reduce(smiles_inputs, method):
     model = tf.keras.Model([atom_class, bond_class, connectivity],
                            [atom_embed, bond_embed, reduced])
 
-    atom_state, bond_state, atom_reduced =  model([inputs['atom'], inputs['bond'],
-                                                   inputs['connectivity']])
+    atom_state, bond_state, atom_reduced = model([inputs['atom'], inputs['bond'],
+                                                  inputs['connectivity']])
 
     assert_allclose(atom_reduced[0, 0, :], func(bond_state[0, :4, :], 0))
     assert_allclose(atom_reduced[0, 1, :], func(bond_state[0, 4:8, :], 0))

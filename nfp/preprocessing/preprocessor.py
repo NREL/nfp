@@ -1,17 +1,16 @@
-import logging
 import json
+import logging
 
 import numpy as np
-from tqdm import tqdm
-
 import tensorflow as tf
-
-from rdkit.Chem import MolFromSmiles, MolToSmiles, AddHs
+from rdkit.Chem import AddHs, MolFromSmiles, MolToSmiles
+from tqdm import tqdm
 
 from nfp.preprocessing import features
 from nfp.preprocessing.features import Tokenizer
 
 zero = tf.constant(0, dtype=tf.int64)
+
 
 class SmilesPreprocessor(object):
     """ Given a list of SMILES strings, encode these molecules as atom and
@@ -47,7 +46,7 @@ class SmilesPreprocessor(object):
 
         self.atom_features = atom_features
         self.bond_features = bond_features
-        
+
         # Keep track of biggest molecules seen in training
         self.max_atoms = 0
         self.max_bonds = 0
@@ -61,7 +60,6 @@ class SmilesPreprocessor(object):
             json_data = json.load(f)
 
         load_from_json(self, json_data)
-
 
     @property
     def atom_classes(self):
@@ -86,7 +84,7 @@ class SmilesPreprocessor(object):
         'connectivity' : (n_bond, 2) array of source atom, target atom pairs.
 
         """
-        
+
         self.atom_tokenizer.train = train
         self.bond_tokenizer.train = train
 
@@ -102,10 +100,10 @@ class SmilesPreprocessor(object):
         if n_bond == 0:
             n_bond = 1
             logger.warning(f'Found molecule {smiles} with zero bonds')
-        
+
         atom_feature_matrix = np.zeros(n_atom, dtype='int')
         bond_feature_matrix = np.zeros(n_bond, dtype='int')
-        bond_indices = np.zeros(n_bond, dtype='int')                
+        bond_indices = np.zeros(n_bond, dtype='int')
         connectivity = np.zeros((n_bond, 2), dtype='int')
 
         bond_index = 0
@@ -124,9 +122,9 @@ class SmilesPreprocessor(object):
                 # Bond Classes
                 bond_feature_matrix[bond_index] = self.bond_tokenizer(
                     self.bond_features(bond, flipped=rev))
-                
+
                 # Connect edges to original bonds
-                bond_indices[bond_index] = bond.GetIdx()                
+                bond_indices[bond_index] = bond.GetIdx()
 
                 # Connectivity
                 if not rev:  # Original direction
@@ -154,7 +152,7 @@ class SmilesPreprocessor(object):
             'bond': bond_feature_matrix,
             'connectivity': connectivity,
         }
-    
+
     tfrecord_features = {
         'n_atom': tf.io.FixedLenFeature([], dtype=tf.int64),
         'n_bond': tf.io.FixedLenFeature([], dtype=tf.int64),
@@ -163,21 +161,21 @@ class SmilesPreprocessor(object):
         'bond': tf.io.FixedLenFeature([], dtype=tf.string),
         'connectivity': tf.io.FixedLenFeature([], dtype=tf.string)
     }
-    
+
     output_types = {'n_atom': tf.int64,
                     'n_bond': tf.int64,
-                    'bond_indices': tf.int64,            
+                    'bond_indices': tf.int64,
                     'atom': tf.int64,
                     'bond': tf.int64,
                     'connectivity': tf.int64}
 
     output_shapes = {'n_atom': tf.TensorShape([]),
                      'n_bond': tf.TensorShape([]),
-                     'bond_indices': tf.TensorShape([None]),            
+                     'bond_indices': tf.TensorShape([None]),
                      'atom': tf.TensorShape([None]),
                      'bond': tf.TensorShape([None]),
                      'connectivity': tf.TensorShape([None, None])}
-    
+
     @staticmethod
     def padded_shapes(max_atoms=-1, max_bonds=-1):
         return {
@@ -188,7 +186,7 @@ class SmilesPreprocessor(object):
             'bond': [max_bonds],
             'connectivity': [max_bonds, 2]
         }
-    
+
     padding_values = {
         'n_atom': zero,
         'n_bond': zero,
@@ -197,7 +195,7 @@ class SmilesPreprocessor(object):
         'bond': zero,
         'connectivity': zero
     }
-    
+
 
 def load_from_json(obj, data):
     for key, val in obj.__dict__.items():
@@ -205,6 +203,7 @@ def load_from_json(obj, data):
             obj.__dict__[key] = data[key]
         elif hasattr(val, '__dict__'):
             load_from_json(val, data[key])
+
 
 # class MolPreprocessor(SmilesPreprocessor):
 #     """ I should refactor this into a base class and separate
@@ -214,7 +213,7 @@ def load_from_json(obj, data):
 
 #     We'll pass an iterator of mol objects instead of SMILES strings this time,
 #     though.
-    
+
 #     """
 
 #     def __init__(self, n_neighbors, **kwargs):
@@ -238,7 +237,7 @@ def load_from_json(obj, data):
 #         'bond' : (n_bond,) list of bond classes. 0 for no bond
 #         'distance' : (n_bond,) list of bond distances
 #         'connectivity' : (n_bond, 2) array of source atom, target atom pairs.
-            
+
 #         """
 
 #         n_atom = len(mol.GetAtoms())
@@ -263,7 +262,7 @@ def load_from_json(obj, data):
 #         # Hopefully we've filtered out all problem mols by now.
 #         if mol is None:
 #             raise RuntimeError("Issue in loading mol")
-        
+
 #         distance_matrix = Chem.Get3DDistanceMatrix(mol)
 
 #         # Get a list of the atoms in the molecule.
@@ -274,11 +273,11 @@ def load_from_json(obj, data):
 #         # neighbor of the current atom.
 #         bond_index = 0  # keep track of our current bond.
 #         for n, atom in enumerate(atoms):
-            
+
 #             # update atom feature matrix
 #             atom_feature_matrix[n] = self.atom_tokenizer(
 #                 self.atom_features(atom))
-            
+
 #             # if n_neighbors is greater than total atoms, then each atom is a
 #             # neighbor.
 #             if (self.n_neighbors + 1) > len(mol.GetAtoms()):
@@ -289,7 +288,7 @@ def load_from_json(obj, data):
 #             # Loop over each of the nearest neighbors
 #             neighbor_inds = distance_matrix[n, :].argsort()[1:end_index]
 #             for neighbor in neighbor_inds:
-                
+
 #                 # update bond feature matrix
 #                 bond = mol.GetBondBetweenAtoms(n, int(neighbor))
 #                 if bond is None:
@@ -301,11 +300,11 @@ def load_from_json(obj, data):
 
 #                 distance = distance_matrix[n, neighbor]
 #                 bond_distance_matrix[bond_index] = distance
-                
+
 #                 # update connectivity matrix
 #                 connectivity[bond_index, 0] = n
 #                 connectivity[bond_index, 1] = neighbor
-                
+
 #                 bond_index += 1
 
 #         return {
@@ -390,7 +389,7 @@ def get_max_atom_bond_size(smiles_iterator, explicit_hs=True):
         max_atoms = max([max_atoms, len(mol.GetAtoms())])
         max_bonds = max([max_bonds, len(mol.GetBonds())])
 
-    return dict(max_atoms=max_atoms, max_bonds=max_bonds*2)
+    return dict(max_atoms=max_atoms, max_bonds=max_bonds * 2)
 
 
 def canonicalize_smiles(smiles, isomeric=True, sanitize=True):

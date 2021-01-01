@@ -1,0 +1,9 @@
+name: test
+
+dependencies:
+  - rdkit
+  - pytest
+  - tqdm
+  - tensorflow>2.0
+  - numpy
+  - scikit-learn

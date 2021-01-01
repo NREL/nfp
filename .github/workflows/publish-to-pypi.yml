@@ -42,7 +42,7 @@ jobs:
         auto-update-conda: false
         auto-activate-base: false
         show-channel-urls: true
-      - run: |
+        run: |
           conda install rdkit pytest tqdm tensorflow>2.0
           python -c "import rdkit.Chem"
           pip install -r requirements.txt

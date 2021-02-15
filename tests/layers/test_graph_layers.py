@@ -53,9 +53,10 @@ def test_global(smiles_inputs, dropout):
     model = tf.keras.Model([atom_class, bond_class, connectivity],
                            [update, update_global])
 
-    update_state, update_state_global = model(
-        [inputs['atom'], inputs['bond'], inputs['connectivity']])
+    update_state, update_state_global = model(inputs)
 
+    assert not hasattr(update, '_keras_mask')
+    assert not hasattr(update_global, '_keras_mask')
     assert update_state.shape == update_state_global.shape
     assert not np.all(update_state == update_state_global)
 

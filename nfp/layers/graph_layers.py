@@ -142,6 +142,7 @@ class GlobalUpdate(GraphLayer):
         super().__init__(**kwargs)
         self.units = units  # H
         self.num_heads = num_heads  # N
+        self.supports_masking = False
 
     def build(self, input_shape):
         super().build(input_shape)

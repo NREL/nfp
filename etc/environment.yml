@@ -9,5 +9,5 @@ dependencies:
   - pytest
   - tqdm
   - tensorflow>2.0
-  - numpy
+  - numpy<=1.19.0
   - scikit-learn

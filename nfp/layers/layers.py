@@ -98,7 +98,11 @@ class Reduce(layers.Layer):
 
 
 class ConcatDense(layers.Layer):
-    """ Layer to combine the concatenation and two dense layers. Just useful as a common operation in the graph layers """
+    """ Layer to combine the concatenation and two dense layers. Just useful as a common operation in the graph
+    layers """
+    def __init__(self, **kwargs):
+        super(ConcatDense, self).__init__(**kwargs)
+        self.supports_masking = True
 
     def build(self, input_shape):
         num_features = input_shape[0][-1]
@@ -112,10 +116,25 @@ class ConcatDense(layers.Layer):
         output = self.dense2(output)
         return output
 
+    def compute_mask(self, inputs, mask=None):
+        if mask is None:
+            return None
+        else:
+            return tf.math.reduce_all(tf.stack(mask), axis=0)
 
 class Tile(layers.Layer):
+    def __init__(self, **kwargs):
+        super(Tile, self).__init__(**kwargs)
+        self.supports_masking = True
+
     def call(self, inputs):
         global_state, target = inputs
         target_shape = tf.shape(target)[1]  # number of edges or nodes
         expanded = tf.expand_dims(global_state, 1)
         return tf.tile(expanded, tf.stack([1, target_shape, 1]))
+
+    def compute_mask(self, inputs, mask=None):
+        if mask is None:
+            return None
+        else:
+            return mask[1]

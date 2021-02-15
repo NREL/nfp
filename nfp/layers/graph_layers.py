@@ -11,6 +11,7 @@ class GraphLayer(layers.Layer):
     def __init__(self, dropout: float = 0.0, **kwargs):
         super().__init__(**kwargs)
         self.dropout = dropout
+        self.supports_masking = True
 
     def build(self, input_shape):
         if len(input_shape) == 4:
@@ -69,6 +70,12 @@ class EdgeUpdate(GraphLayer):
         new_bond_state = self.add([bond_state, new_bond_state])
         return new_bond_state
 
+    def compute_mask(self, inputs, mask=None):
+        if mask is None:
+            return None
+        else:
+            return mask[1]
+
     def compute_output_shape(self, input_shape):
         return input_shape[1]
 
@@ -123,6 +130,12 @@ class NodeUpdate(GraphLayer):
     def compute_output_shape(self, input_shape):
         return input_shape[0]
 
+    def compute_mask(self, inputs, mask=None):
+        if mask is None:
+            return None
+        else:
+            return mask[0]
+
 
 class GlobalUpdate(GraphLayer):
     def __init__(self, units, num_heads, **kwargs):
@@ -144,7 +157,6 @@ class GlobalUpdate(GraphLayer):
         return tf.transpose(a=output_tensor, perm=[0, 2, 1, 3])  # [B,N,S,H]
 
     def call(self, inputs, mask=None):
-
         if not self.use_global:
             atom_state, bond_state, connectivity = inputs
         else:
@@ -154,6 +166,14 @@ class GlobalUpdate(GraphLayer):
 
         graph_elements = tf.concat([atom_state, bond_state], axis=1)
         query = self.query_layer(graph_elements)  # [B,N,S,H]
+
+        if mask is not None:
+            graph_element_mask = tf.concat([mask[0], mask[1]], axis=1)
+            query = tf.where(
+                tf.expand_dims(graph_element_mask, axis=-1),
+                query,
+                tf.ones_like(query) * query.dtype.min)
+
         query = tf.transpose(query, perm=[0, 2, 1])
         value = self.transpose_scores(self.value_layer(graph_elements))  # [B,N,S,H]
 

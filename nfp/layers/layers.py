@@ -1,3 +1,5 @@
+import logging
+
 import tensorflow as tf
 from tensorflow.keras import layers
 
@@ -44,12 +46,10 @@ class Slice(layers.Layer):
     def __init__(self, slice_obj, *args, **kwargs):
         super(Slice, self).__init__(*args, **kwargs)
         self.slice_obj = slice_obj
+        self.supports_masking = True
 
-    def call(self, inputs):
+    def call(self, inputs, mask=None):
         return inputs[self.slice_obj]
-
-    def compute_mask(self, inputs, mask):
-        return mask
 
     def get_config(self):
         return {'slice_obj': str(self.slice_obj)}
@@ -61,7 +61,7 @@ class Slice(layers.Layer):
 
 
 class Gather(layers.Layer):
-    def call(self, inputs):
+    def call(self, inputs, mask=None):
         reference, indices = inputs
         return tf.gather(reference, indices, batch_dims=1)
 
@@ -127,7 +127,7 @@ class Tile(layers.Layer):
         super(Tile, self).__init__(**kwargs)
         self.supports_masking = True
 
-    def call(self, inputs):
+    def call(self, inputs, mask=None):
         global_state, target = inputs
         target_shape = tf.shape(target)[1]  # number of edges or nodes
         expanded = tf.expand_dims(global_state, 1)

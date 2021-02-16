@@ -9,7 +9,7 @@ def smiles_inputs():
     preprocessor = nfp.SmilesPreprocessor()
     dataset = tf.data.Dataset.from_generator(
         lambda: (preprocessor.construct_feature_matrices(smiles, train=True)
-                 for smiles in ['CC', 'CCC', 'C(C)C', 'C']),
+                 for smiles in ['CC', 'CCC', 'C1CC1', 'C']),
         output_types=preprocessor.output_types,
         output_shapes=preprocessor.output_shapes) \
         .padded_batch(batch_size=4,

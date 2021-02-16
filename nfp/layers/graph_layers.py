@@ -11,7 +11,7 @@ class GraphLayer(layers.Layer):
     def __init__(self, dropout: float = 0.0, **kwargs):
         super().__init__(**kwargs)
         self.dropout = dropout
-        self.supports_masking = True
+        self.supports_masking = False
 
     def build(self, input_shape):
         if len(input_shape) == 4:
@@ -41,9 +41,7 @@ class EdgeUpdate(GraphLayer):
         self.gather = nfp.Gather()
         self.slice1 = nfp.Slice(np.s_[:, :, 1])
         self.slice0 = nfp.Slice(np.s_[:, :, 0])
-
         self.concat = nfp.ConcatDense()
-        self.add = layers.Add()
 
     def call(self, inputs, mask=None):
         """ Inputs: [atom_state, bond_state, connectivity]
@@ -67,14 +65,7 @@ class EdgeUpdate(GraphLayer):
         if self.dropout > 0.:
             new_bond_state = self.dropout_layer(new_bond_state)
 
-        new_bond_state = self.add([bond_state, new_bond_state])
         return new_bond_state
-
-    def compute_mask(self, inputs, mask=None):
-        if mask is None:
-            return None
-        else:
-            return mask[1]
 
     def compute_output_shape(self, input_shape):
         return input_shape[1]
@@ -95,7 +86,6 @@ class NodeUpdate(GraphLayer):
 
         self.dense1 = layers.Dense(2 * num_features, activation='relu')
         self.dense2 = layers.Dense(num_features)
-        self.add = layers.Add()
 
     def call(self, inputs, mask=None):
         """ Inputs: [atom_state, bond_state, connectivity]
@@ -114,6 +104,11 @@ class NodeUpdate(GraphLayer):
         else:
             messages = self.concat([source_atom, bond_state, global_state])
 
+        if mask is not None:
+            # Only works for sum, max
+            messages = tf.where(tf.expand_dims(mask[1], axis=-1),
+                                messages, tf.zeros_like(messages))
+
         new_atom_state = self.reduce([messages, self.slice0(connectivity), atom_state])
 
         # Dense net after message reduction
@@ -123,18 +118,10 @@ class NodeUpdate(GraphLayer):
         if self.dropout > 0.:
             new_atom_state = self.dropout_layer(new_atom_state)
 
-        new_atom_state = self.add([atom_state, new_atom_state])
-
         return new_atom_state
 
     def compute_output_shape(self, input_shape):
         return input_shape[0]
-
-    def compute_mask(self, inputs, mask=None):
-        if mask is None:
-            return None
-        else:
-            return mask[0]
 
 
 class GlobalUpdate(GraphLayer):
@@ -142,14 +129,12 @@ class GlobalUpdate(GraphLayer):
         super().__init__(**kwargs)
         self.units = units  # H
         self.num_heads = num_heads  # N
-        self.supports_masking = False
 
     def build(self, input_shape):
         super().build(input_shape)
         dense_units = self.units * self.num_heads  # N*H
         self.query_layer = layers.Dense(self.num_heads, name='query')
         self.value_layer = layers.Dense(dense_units, name='value')
-        self.add = layers.Add()
 
     def transpose_scores(self, input_tensor):
         input_shape = tf.shape(input_tensor)
@@ -185,12 +170,7 @@ class GlobalUpdate(GraphLayer):
         if self.dropout > 0.:
             context = self.dropout_layer(context)
 
-        if self.use_global:
-            global_state = self.add([global_state, context])
-        else:
-            global_state = context
-
-        return global_state
+        return context
 
     def get_config(self):
         config = super(GlobalUpdate, self).get_config()

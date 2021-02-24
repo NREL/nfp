@@ -144,3 +144,39 @@ def test_masking_message(smiles_inputs):
     output_pad = model(get_inputs(max_atoms=20, max_bonds=40))
 
     assert np.all(np.isclose(output, output_pad, atol=1E-4))
+
+
+def test_no_residual(smiles_inputs):
+    preprocessor, inputs = smiles_inputs
+
+    def get_inputs(max_atoms=-1, max_bonds=-1):
+        dataset = tf.data.Dataset.from_generator(
+            lambda: (preprocessor.construct_feature_matrices(smiles, train=True)
+                     for smiles in ['CC', 'CCC', 'C(C)C', 'C']),
+            output_types=preprocessor.output_types,
+            output_shapes=preprocessor.output_shapes) \
+            .padded_batch(batch_size=4,
+                          padded_shapes=preprocessor.padded_shapes(max_atoms, max_bonds),
+                          padding_values=preprocessor.padding_values)
+
+        return list(dataset.take(1))[0]
+
+    atom_class = layers.Input(shape=[None], dtype=tf.int64, name='atom')
+    bond_class = layers.Input(shape=[None], dtype=tf.int64, name='bond')
+    connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name='connectivity')
+
+    atom_state = layers.Embedding(preprocessor.atom_classes, 16, mask_zero=True)(atom_class)
+    bond_state = layers.Embedding(preprocessor.bond_classes, 16, mask_zero=True)(bond_class)
+    global_state = nfp.GlobalUpdate(8, 2)([atom_state, bond_state, connectivity])
+
+    for _ in range(3):
+        bond_state = nfp.EdgeUpdate()([atom_state, bond_state, connectivity])
+        atom_state = nfp.NodeUpdate()([atom_state, bond_state, connectivity])
+        global_state = nfp.GlobalUpdate(8, 2)([atom_state, bond_state, connectivity])
+
+    model = tf.keras.Model([atom_class, bond_class, connectivity], [global_state])
+
+    output = model(get_inputs())
+    output_pad = model(get_inputs(max_atoms=20, max_bonds=40))
+
+    assert np.all(np.isclose(output, output_pad, atol=1E-4))

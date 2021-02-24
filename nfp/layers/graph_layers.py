@@ -11,7 +11,7 @@ class GraphLayer(layers.Layer):
     def __init__(self, dropout: float = 0.0, **kwargs):
         super().__init__(**kwargs)
         self.dropout = dropout
-        self.supports_masking = False
+        self.supports_masking = True
 
     def build(self, input_shape):
         if len(input_shape) == 4:
@@ -70,6 +70,12 @@ class EdgeUpdate(GraphLayer):
     def compute_output_shape(self, input_shape):
         return input_shape[1]
 
+    def compute_mask(self, inputs, mask=None):
+        if mask:
+            return mask[1]
+        else:
+            return None
+
 
 class NodeUpdate(GraphLayer):
     def build(self, input_shape):
@@ -123,12 +129,18 @@ class NodeUpdate(GraphLayer):
     def compute_output_shape(self, input_shape):
         return input_shape[0]
 
+    def compute_mask(self, inputs, mask=None):
+        if mask:
+            return mask[0]
+        else:
+            return None
 
 class GlobalUpdate(GraphLayer):
     def __init__(self, units, num_heads, **kwargs):
         super().__init__(**kwargs)
         self.units = units  # H
         self.num_heads = num_heads  # N
+        self.supports_masking = False
 
     def build(self, input_shape):
         super().build(input_shape)

@@ -5,15 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    nfp.layers
-    nfp.models
-    nfp.preprocessing
+   nfp.layers
+   nfp.models
+   nfp.preprocessing
 
 Module contents
 ---------------
 
 .. automodule:: nfp
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

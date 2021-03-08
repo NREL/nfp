@@ -60,6 +60,7 @@ def test_global(smiles_inputs, dropout):
     assert update_state.shape == update_state_global.shape
     assert not np.all(update_state == update_state_global)
 
+
 @pytest.mark.parametrize('layer', [nfp.EdgeUpdate, nfp.NodeUpdate, nfp.GlobalUpdate])
 def test_masking(smiles_inputs, layer):
     preprocessor, inputs = smiles_inputs
@@ -104,6 +105,7 @@ def test_masking(smiles_inputs, layer):
 
     assert np.all(np.isclose(update_state, update_state_pad, atol=1E-4))
     assert np.all(np.isclose(update_state_global, update_state_global_pad, atol=1E-4))
+
 
 def test_masking_message(smiles_inputs):
     preprocessor, inputs = smiles_inputs

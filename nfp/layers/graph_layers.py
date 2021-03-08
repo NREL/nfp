@@ -135,6 +135,7 @@ class NodeUpdate(GraphLayer):
         else:
             return None
 
+
 class GlobalUpdate(GraphLayer):
     def __init__(self, units, num_heads, **kwargs):
         super().__init__(**kwargs)

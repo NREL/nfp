@@ -8,6 +8,6 @@ dependencies:
   - rdkit
   - pytest
   - tqdm
-  - tensorflow>2.0
-  - numpy<=1.19.0
-  - scikit-learn
+  - pip
+  - pip:
+      - tensorflow>=2.0

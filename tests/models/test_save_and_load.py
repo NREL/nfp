@@ -1,9 +1,10 @@
-import pytest
-from tensorflow.keras import layers
-import tensorflow as tf
 import numpy as np
+import pytest
+import tensorflow as tf
+from tensorflow.keras import layers
 
 import nfp
+
 
 # @pytest.mark.skip(reason="slow, test whole message block instead")
 # @pytest.mark.parametrize('layer', [nfp.EdgeUpdate, nfp.NodeUpdate, nfp.GlobalUpdate])

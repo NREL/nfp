@@ -100,6 +100,7 @@ class Reduce(layers.Layer):
 class ConcatDense(layers.Layer):
     """ Layer to combine the concatenation and two dense layers. Just useful as a common operation in the graph
     layers """
+
     def __init__(self, **kwargs):
         super(ConcatDense, self).__init__(**kwargs)
         self.supports_masking = True
@@ -121,6 +122,7 @@ class ConcatDense(layers.Layer):
             return None
         else:
             return tf.math.reduce_all(tf.stack(mask), axis=0)
+
 
 class Tile(layers.Layer):
     def __init__(self, **kwargs):

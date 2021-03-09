@@ -11,7 +11,7 @@ import nfp
 def test_layer(smiles_inputs, layer, dropout):
     preprocessor, inputs = smiles_inputs
 
-    atom_class = layers.Input(shape=[11], dtype=tf.int64, name='atom')
+    atom_class = layers.Input(shape=[None], dtype=tf.int64, name='atom')
     bond_class = layers.Input(shape=[None], dtype=tf.int64, name='bond')
     connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name='connectivity')
 
@@ -77,7 +77,7 @@ def test_masking(smiles_inputs, layer):
 
         return list(dataset.take(1))[0]
 
-    atom_class = layers.Input(shape=[11], dtype=tf.int64, name='atom')
+    atom_class = layers.Input(shape=[None], dtype=tf.int64, name='atom')
     bond_class = layers.Input(shape=[None], dtype=tf.int64, name='bond')
     connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name='connectivity')
 

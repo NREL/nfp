@@ -1,13 +1,5 @@
-nfp.models package
-==================
-
-Submodules
-----------
-
-nfp.models.losses module
-------------------------
+Masked Losses
+======================================
 
 .. automodule:: nfp.models.losses
    :members:
-   :undoc-members:
-   :show-inheritance:

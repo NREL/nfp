@@ -1,7 +1,9 @@
 import json
 import logging
+from typing import Callable, Dict, Hashable, List, Optional
 
 import numpy as np
+import rdkit
 import tensorflow as tf
 from rdkit.Chem import AddHs, MolFromSmiles, MolToSmiles
 from tqdm import tqdm
@@ -13,26 +15,29 @@ zero = tf.constant(0, dtype=tf.int64)
 
 
 class SmilesPreprocessor(object):
-    """ Given a list of SMILES strings, encode these molecules as atom and
-    connectivity feature matricies.
+    """A preprocessor to turn a set of SMILES strings into atom, bond, and connectivity inputs suitable for nfp's
+    graph layers.
 
-    Example:
+    Args:
+        explicit_hs: whether to tell RDkit to add H's to a molecule.
+        atom_features: A function applied to an rdkit.Atom that returns some
+            representation (i.e., string, integer) for the Tokenizer class.
+        bond_features: A function applied to an rdkit Bond to return some description.
+
+    :Example:
     >>> preprocessor = SmilesPreprocessor(explicit_hs=False)
-    >>> inputs = preprocessor.fit(data.smiles)
+    >>> preprocessor.construct_feature_matrices('CCC', train=True)
+    {'atom': array([2, 3, 2]),
+     'bond': array([2, 2, 2, 2]),
+     'connectivity': array([[0, 1],
+            [1, 0],
+            [1, 2],
+            [2, 1]])}
     """
 
-    def __init__(self, explicit_hs=True, atom_features=None, bond_features=None):
-        """
-
-        explicit_hs : bool
-            whether to tell RDkit to add H's to a molecule.
-        atom_features : function
-            A function applied to an rdkit.Atom that returns some
-            representation (i.e., string, integer) for the Tokenizer class.
-        bond_features : function
-            A function applied to an rdkit Bond to return some description.
-
-        """
+    def __init__(self, explicit_hs: bool = True,
+                 atom_features: Optional[Callable[[rdkit.Chem.Atom], Hashable]] = None,
+                 bond_features: Optional[Callable[[rdkit.Chem.Bond], Hashable]] = None) -> None:
 
         self.atom_tokenizer = Tokenizer()
         self.bond_tokenizer = Tokenizer()
@@ -398,3 +403,19 @@ def canonicalize_smiles(smiles, isomeric=True, sanitize=True):
         return MolToSmiles(mol, isomericSmiles=isomeric)
     except Exception:
         pass
+
+
+def filter_keys(input_dict: Dict, keys: Optional[List[str]] = None) -> Dict:
+    """Remove unnecessary model inputs from nfp.SmilesPreprocessor outputs
+
+    Args:
+        keys: desired keys
+        input_dict: A dictionary containing unnecessary keys
+
+    Returns:
+        attribute_dict: The input dictionary filtered to the desired keys
+    """
+    if keys is None:
+        keys = ['atom', 'bond', 'connectivity']
+
+    return {key: value for key, value in input_dict.items() if key in keys}

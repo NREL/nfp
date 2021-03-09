@@ -12,6 +12,7 @@
 #
 import re
 import os
+
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
@@ -27,7 +28,6 @@ release = re.sub('^v', '', os.popen('git describe').read().strip())
 # The short X.Y version.
 version = release
 
-
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -41,7 +41,6 @@ extensions = [
     'sphinx.ext.napoleon',
     "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
-    "sphinx_autodoc_typehints",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -51,7 +50,6 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -65,3 +63,4 @@ html_theme = "sphinx_rtd_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+autodoc_typehints = "description"

@@ -10,4 +10,4 @@ dependencies:
   - tqdm
   - pip
   - pip:
-      - tensorflow>=2.0
+    - tensorflow

@@ -8,6 +8,4 @@ dependencies:
   - rdkit
   - pytest
   - tqdm
-  - pip
-  - pip:
-    - tensorflow
+  - tensorflow

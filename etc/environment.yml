@@ -8,6 +8,5 @@ dependencies:
   - rdkit
   - pytest
   - tqdm
-  - pip
-  - pip:
-    - tensorflow
+  - numpy=1.19.*
+  - tensorflow

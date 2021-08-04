@@ -14,7 +14,7 @@ from nfp.preprocessing.features import Tokenizer
 zero = tf.constant(0, dtype=tf.int64)
 
 
-class SmilesPreprocessor(object):
+class MolPreprocessor(object):
     """A preprocessor to turn a set of SMILES strings into atom, bond, and connectivity inputs suitable for nfp's
     graph layers.
 
@@ -25,8 +25,8 @@ class SmilesPreprocessor(object):
         bond_features: A function applied to an rdkit Bond to return some description.
 
     :Example:
-    >>> preprocessor = SmilesPreprocessor(explicit_hs=False)
-    >>> preprocessor.construct_feature_matrices('CCC', train=True)
+    >>> preprocessor = MolPreprocessor(explicit_hs=False)
+    >>> preprocessor.construct_feature_matrices(rdkit.Chem.MolFromSmiles('CCC'), train=True)
     {'atom': array([2, 3, 2]),
      'bond': array([2, 2, 2, 2]),
      'connectivity': array([[0, 1],
@@ -35,13 +35,12 @@ class SmilesPreprocessor(object):
             [2, 1]])}
     """
 
-    def __init__(self, explicit_hs: bool = True,
+    def __init__(self,
                  atom_features: Optional[Callable[[rdkit.Chem.Atom], Hashable]] = None,
                  bond_features: Optional[Callable[[rdkit.Chem.Bond], Hashable]] = None) -> None:
 
         self.atom_tokenizer = Tokenizer()
         self.bond_tokenizer = Tokenizer()
-        self.explicit_hs = explicit_hs
 
         if atom_features is None:
             atom_features = features.atom_features_v1
@@ -76,27 +75,15 @@ class SmilesPreprocessor(object):
         """ The number of bond types found (includes the 0 null-bond type) """
         return self.bond_tokenizer.num_classes + 1
 
-    def construct_feature_matrices(self, smiles, train=True):
-        """ construct a molecule from the given smiles string and return atom
-        and bond classes.
-
-        Returns
-        dict with entries
-        'n_atom' : number of atoms in the molecule
-        'n_bond' : number of bonds in the molecule 
+    def construct_feature_matrices(self, mol: rdkit.Chem.Mol, train: bool = False) -> {}:
+        """ Convert an rdkit Mol to a list of tensors
         'atom' : (n_atom,) length list of atom classes
         'bond' : (n_bond,) list of bond classes
         'connectivity' : (n_bond, 2) array of source atom, target atom pairs.
-
         """
 
         self.atom_tokenizer.train = train
         self.bond_tokenizer.train = train
-
-        logger = logging.getLogger(__name__)
-        mol = MolFromSmiles(smiles)
-        if self.explicit_hs:
-            mol = AddHs(mol)
 
         n_atom = mol.GetNumAtoms()
         n_bond = 2 * mol.GetNumBonds()
@@ -104,19 +91,19 @@ class SmilesPreprocessor(object):
         # If its an isolated atom, add a self-link
         if n_bond == 0:
             n_bond = 1
-            logger.warning(f'Found molecule {smiles} with zero bonds')
 
-        atom_feature_matrix = np.zeros(n_atom, dtype='int')
-        bond_feature_matrix = np.zeros(n_bond, dtype='int')
-        bond_indices = np.zeros(n_bond, dtype='int')
-        connectivity = np.zeros((n_bond, 2), dtype='int')
+        atom_feature_matrix = np.zeros(n_atom, dtype='int32')
+        bond_feature_matrix = np.zeros(n_bond, dtype='int32')
+        connectivity = np.zeros((n_bond, 2), dtype='int32')
+
+        if n_bond == 1:
+            bond_feature_matrix[0] = self.bond_tokenizer('self-link')
 
         bond_index = 0
         for n, atom in enumerate(mol.GetAtoms()):
 
             # Atom Classes
-            atom_feature_matrix[n] = self.atom_tokenizer(
-                self.atom_features(atom))
+            atom_feature_matrix[n] = self.atom_tokenizer(self.atom_features(atom))
 
             start_index = atom.GetIdx()
 
@@ -125,11 +112,7 @@ class SmilesPreprocessor(object):
                 rev = bond.GetBeginAtomIdx() != start_index
 
                 # Bond Classes
-                bond_feature_matrix[bond_index] = self.bond_tokenizer(
-                    self.bond_features(bond, flipped=rev))
-
-                # Connect edges to original bonds
-                bond_indices[bond_index] = bond.GetIdx()
+                bond_feature_matrix[bond_index] = self.bond_tokenizer(self.bond_features(bond, flipped=rev))
 
                 # Connectivity
                 if not rev:  # Original direction
@@ -142,64 +125,15 @@ class SmilesPreprocessor(object):
 
                 bond_index += 1
 
-        # Track the largest atom and bonds seen 
-        if train:
-            if n_atom > self.max_atoms:
-                self.max_atoms = n_atom
-            if mol.GetNumBonds() > self.max_bonds:
-                self.max_bonds = mol.GetNumBonds()
-
         return {
-            'n_atom': n_atom,
-            'n_bond': mol.GetNumBonds(),  # the real number of bonds
-            'bond_indices': bond_indices,
             'atom': atom_feature_matrix,
             'bond': bond_feature_matrix,
             'connectivity': connectivity,
         }
 
-    tfrecord_features = {
-        'n_atom': tf.io.FixedLenFeature([], dtype=tf.int64),
-        'n_bond': tf.io.FixedLenFeature([], dtype=tf.int64),
-        'bond_indices': tf.io.FixedLenFeature([], dtype=tf.string),
-        'atom': tf.io.FixedLenFeature([], dtype=tf.string),
-        'bond': tf.io.FixedLenFeature([], dtype=tf.string),
-        'connectivity': tf.io.FixedLenFeature([], dtype=tf.string)
-    }
-
-    output_types = {'n_atom': tf.int64,
-                    'n_bond': tf.int64,
-                    'bond_indices': tf.int64,
-                    'atom': tf.int64,
-                    'bond': tf.int64,
-                    'connectivity': tf.int64}
-
-    output_shapes = {'n_atom': tf.TensorShape([]),
-                     'n_bond': tf.TensorShape([]),
-                     'bond_indices': tf.TensorShape([None]),
-                     'atom': tf.TensorShape([None]),
-                     'bond': tf.TensorShape([None]),
-                     'connectivity': tf.TensorShape([None, None])}
-
-    @staticmethod
-    def padded_shapes(max_atoms=-1, max_bonds=-1):
-        return {
-            'n_atom': [],
-            'n_bond': [],
-            'bond_indices': [max_bonds],
-            'atom': [max_atoms],
-            'bond': [max_bonds],
-            'connectivity': [max_bonds, 2]
-        }
-
-    padding_values = {
-        'n_atom': zero,
-        'n_bond': zero,
-        'bond_indices': zero,
-        'atom': zero,
-        'bond': zero,
-        'connectivity': zero
-    }
+    output_signature = {'atom': tf.TensorSpec(shape=(None,), dtype=tf.int32),
+                        'bond': tf.TensorSpec(shape=(None,), dtype=tf.int32),
+                        'connectivity': tf.TensorSpec(shape=(None, 2), dtype=tf.int32)}
 
 
 def load_from_json(obj, data):
@@ -210,175 +144,18 @@ def load_from_json(obj, data):
             load_from_json(val, data[key])
 
 
-# class MolPreprocessor(SmilesPreprocessor):
-#     """ I should refactor this into a base class and separate
-#     SmilesPreprocessor classes. But the idea is that we only need to redefine
-#     the `construct_feature_matrices` method to have a working preprocessor that
-#     handles 3D structures. 
+class SmilesPreprocessor(MolPreprocessor):
 
-#     We'll pass an iterator of mol objects instead of SMILES strings this time,
-#     though.
+    def __init__(self, *args, explicit_hs: bool = True, **kwargs):
+        super(SmilesPreprocessor, self).__init__(*args, **kwargs)
+        self.explicit_hs = explicit_hs
 
-#     """
+    def construct_feature_matrices(self, smiles: str, train: bool = False) -> {}:
+        mol = rdkit.Chem.MolFromSmiles(smiles)
+        if self.explicit_hs:
+            mol = rdkit.Chem.AddHs(mol)
+        return super(SmilesPreprocessor, self).construct_feature_matrices(mol, train=train)
 
-#     def __init__(self, n_neighbors, **kwargs):
-#         """ A preprocessor class that also returns distances between
-#         neighboring atoms. Adds edges for non-bonded atoms to include a maximum
-#         of n_neighbors around each atom """
-
-#         self.n_neighbors = n_neighbors
-#         super(MolPreprocessor, self).__init__(**kwargs)
-
-
-#     def construct_feature_matrices(self, mol):
-#         """ Given an rdkit mol, return atom feature matrices, bond feature
-#         matrices, and connectivity matrices.
-
-#         Returns
-#         dict with entries
-#         'n_atom' : number of atoms in the molecule
-#         'n_bond' : number of edges (likely n_atom * n_neighbors)
-#         'atom' : (n_atom,) length list of atom classes
-#         'bond' : (n_bond,) list of bond classes. 0 for no bond
-#         'distance' : (n_bond,) list of bond distances
-#         'connectivity' : (n_bond, 2) array of source atom, target atom pairs.
-
-#         """
-
-#         n_atom = len(mol.GetAtoms())
-
-#         # n_bond is actually the number of atom-atom pairs, so this is defined
-#         # by the number of neighbors for each atom.
-#         if self.n_neighbors <= (n_atom - 1):
-#             n_bond = self.n_neighbors * n_atom
-#         elif n_atom == 1:
-#             n_bond = 1
-#         else:
-#             # If there are fewer atoms than n_neighbors, all atoms will be
-#             # connected
-#             n_bond = (n_atom - 1) * n_atom
-
-#         # Initialize the matrices to be filled in during the following loop.
-#         atom_feature_matrix = np.zeros(n_atom, dtype='int')
-#         bond_feature_matrix = np.zeros(n_bond, dtype='int')
-#         bond_distance_matrix = np.zeros(n_bond, dtype=np.float32)
-#         connectivity = np.zeros((n_bond, 2), dtype='int')
-
-#         # Hopefully we've filtered out all problem mols by now.
-#         if mol is None:
-#             raise RuntimeError("Issue in loading mol")
-
-#         distance_matrix = Chem.Get3DDistanceMatrix(mol)
-
-#         # Get a list of the atoms in the molecule.
-#         atom_seq = mol.GetAtoms()
-#         atoms = [atom_seq[i] for i in range(n_atom)]
-
-#         # Here we loop over each atom, and the inner loop iterates over each
-#         # neighbor of the current atom.
-#         bond_index = 0  # keep track of our current bond.
-#         for n, atom in enumerate(atoms):
-
-#             # update atom feature matrix
-#             atom_feature_matrix[n] = self.atom_tokenizer(
-#                 self.atom_features(atom))
-
-#             # if n_neighbors is greater than total atoms, then each atom is a
-#             # neighbor.
-#             if (self.n_neighbors + 1) > len(mol.GetAtoms()):
-#                 end_index = len(mol.GetAtoms())
-#             else:
-#                 end_index = (self.n_neighbors + 1)
-
-#             # Loop over each of the nearest neighbors
-#             neighbor_inds = distance_matrix[n, :].argsort()[1:end_index]
-#             for neighbor in neighbor_inds:
-
-#                 # update bond feature matrix
-#                 bond = mol.GetBondBetweenAtoms(n, int(neighbor))
-#                 if bond is None:
-#                     bond_feature_matrix[bond_index] = 0
-#                 else:
-#                     rev = False if bond.GetBeginAtomIdx() == n else True
-#                     bond_feature_matrix[bond_index] = self.bond_tokenizer(
-#                         self.bond_features(bond, flipped=rev))
-
-#                 distance = distance_matrix[n, neighbor]
-#                 bond_distance_matrix[bond_index] = distance
-
-#                 # update connectivity matrix
-#                 connectivity[bond_index, 0] = n
-#                 connectivity[bond_index, 1] = neighbor
-
-#                 bond_index += 1
-
-#         return {
-#             'n_atom': n_atom,
-#             'n_bond': n_bond,
-#             'atom': atom_feature_matrix,
-#             'bond': bond_feature_matrix,
-#             'distance': bond_distance_matrix,
-#             'connectivity': connectivity,
-#         }
-
-
-# TODO: rewrite this                                
-# class LaplacianSmilesPreprocessor(SmilesPreprocessor):
-#     """ Extends the SmilesPreprocessor class to also return eigenvalues and
-#     eigenvectors of the graph laplacian matrix.
-#
-#     Example:
-#     >>> preprocessor = SmilesPreprocessor(
-#     >>>     max_atoms=55, max_bonds=62, max_degree=4, explicit_hs=False)
-#     >>> atom, connectivity, eigenvalues, eigenvectors = preprocessor.fit(
-#             data.smiles)
-#     """
-#
-#     def preprocess(self, smiles_iterator, train=True):
-#
-#         self.atom_tokenizer.train = train
-#         self.bond_tokenizer.train = train
-#
-#         for smiles in tqdm(smiles_iterator):
-#             G = self._mol_to_nx(smiles)
-#             A = self._get_atom_feature_matrix(G)
-#             C = self._get_connectivity_matrix(G)
-#             W, V = self._get_laplacian_spectral_decomp(G)
-#             yield A, C, W, V
-#
-#
-#     def _get_laplacian_spectral_decomp(self, G):
-#         """ Return the eigenvalues and eigenvectors of the graph G, padded to
-#         `self.max_atoms`.
-#         """
-#
-#         w0 = np.zeros((self.max_atoms, 1))
-#         v0 = np.zeros((self.max_atoms, self.max_atoms))
-#
-#         w, v = eigh(nx.laplacian_matrix(G).todense())
-#
-#         num_atoms = len(v)
-#
-#         w0[:num_atoms, 0] = w
-#         v0[:num_atoms, :num_atoms] = v
-#
-#         return w0, v0
-#
-#
-#     def fit(self, smiles_iterator):
-#         results = self._fit(smiles_iterator)
-#         return {'atom': results[0], 
-#                 'connectivity': results[1],
-#                 'w': results[2],
-#                 'v': results[3]}
-#
-#
-#     def predict(self, smiles_iterator):
-#         results = self._predict(smiles_iterator)
-#         return {'atom': results[0], 
-#                 'connectivity': results[1],
-#                 'w': results[2],
-#                 'v': results[3]}
 
 
 def get_max_atom_bond_size(smiles_iterator, explicit_hs=True):

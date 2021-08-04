@@ -62,20 +62,8 @@ def test_global(smiles_inputs, dropout):
 
 
 @pytest.mark.parametrize('layer', [nfp.EdgeUpdate, nfp.NodeUpdate, nfp.GlobalUpdate])
-def test_masking(smiles_inputs, layer):
+def test_masking(inputs_no_padding, inputs_with_padding, smiles_inputs, layer):
     preprocessor, inputs = smiles_inputs
-
-    def get_inputs(max_atoms=-1, max_bonds=-1):
-        dataset = tf.data.Dataset.from_generator(
-            lambda: (preprocessor.construct_feature_matrices(smiles, train=True)
-                     for smiles in ['CC', 'CCC', 'C(C)C', 'C']),
-            output_types=preprocessor.output_types,
-            output_shapes=preprocessor.output_shapes) \
-            .padded_batch(batch_size=4,
-                          padded_shapes=preprocessor.padded_shapes(max_atoms, max_bonds),
-                          padding_values=preprocessor.padding_values)
-
-        return list(dataset.take(1))[0]
 
     atom_class = layers.Input(shape=[None], dtype=tf.int64, name='atom')
     bond_class = layers.Input(shape=[None], dtype=tf.int64, name='bond')
@@ -94,8 +82,8 @@ def test_masking(smiles_inputs, layer):
     update_global = get_layer()([atom_state, bond_state, connectivity, global_state])
     model = tf.keras.Model([atom_class, bond_class, connectivity], [update, update_global])
 
-    update_state, update_state_global = model(get_inputs())
-    update_state_pad, update_state_global_pad = model(get_inputs(max_atoms=20, max_bonds=40))
+    update_state, update_state_global = model(inputs_no_padding)
+    update_state_pad, update_state_global_pad = model(inputs_with_padding)
 
     if update_state.ndim > 2:  # bond or atom, need to remove the padding to compare
         update_state_pad = update_state_pad[:, :update_state.shape[1], :]
@@ -107,20 +95,8 @@ def test_masking(smiles_inputs, layer):
     assert np.all(np.isclose(update_state_global, update_state_global_pad, atol=1E-4))
 
 
-def test_masking_message(smiles_inputs):
+def test_masking_message(inputs_no_padding, inputs_with_padding, smiles_inputs):
     preprocessor, inputs = smiles_inputs
-
-    def get_inputs(max_atoms=-1, max_bonds=-1):
-        dataset = tf.data.Dataset.from_generator(
-            lambda: (preprocessor.construct_feature_matrices(smiles, train=True)
-                     for smiles in ['CC', 'CCC', 'C(C)C', 'C']),
-            output_types=preprocessor.output_types,
-            output_shapes=preprocessor.output_shapes) \
-            .padded_batch(batch_size=4,
-                          padded_shapes=preprocessor.padded_shapes(max_atoms, max_bonds),
-                          padding_values=preprocessor.padding_values)
-
-        return list(dataset.take(1))[0]
 
     atom_class = layers.Input(shape=[None], dtype=tf.int64, name='atom')
     bond_class = layers.Input(shape=[None], dtype=tf.int64, name='bond')
@@ -142,26 +118,14 @@ def test_masking_message(smiles_inputs):
 
     model = tf.keras.Model([atom_class, bond_class, connectivity], [global_state])
 
-    output = model(get_inputs())
-    output_pad = model(get_inputs(max_atoms=20, max_bonds=40))
+    output = model(inputs_no_padding)
+    output_pad = model(inputs_with_padding)
 
     assert np.all(np.isclose(output, output_pad, atol=1E-4))
 
 
-def test_no_residual(smiles_inputs):
+def test_no_residual(inputs_no_padding, inputs_with_padding, smiles_inputs):
     preprocessor, inputs = smiles_inputs
-
-    def get_inputs(max_atoms=-1, max_bonds=-1):
-        dataset = tf.data.Dataset.from_generator(
-            lambda: (preprocessor.construct_feature_matrices(smiles, train=True)
-                     for smiles in ['CC', 'CCC', 'C(C)C', 'C']),
-            output_types=preprocessor.output_types,
-            output_shapes=preprocessor.output_shapes) \
-            .padded_batch(batch_size=4,
-                          padded_shapes=preprocessor.padded_shapes(max_atoms, max_bonds),
-                          padding_values=preprocessor.padding_values)
-
-        return list(dataset.take(1))[0]
 
     atom_class = layers.Input(shape=[None], dtype=tf.int64, name='atom')
     bond_class = layers.Input(shape=[None], dtype=tf.int64, name='bond')
@@ -178,7 +142,7 @@ def test_no_residual(smiles_inputs):
 
     model = tf.keras.Model([atom_class, bond_class, connectivity], [global_state])
 
-    output = model(get_inputs())
-    output_pad = model(get_inputs(max_atoms=20, max_bonds=40))
+    output = model(inputs_no_padding)
+    output_pad = model(inputs_with_padding)
 
     assert np.all(np.isclose(output, output_pad, atol=1E-4))

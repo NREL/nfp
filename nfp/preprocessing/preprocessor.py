@@ -37,7 +37,9 @@ class MolPreprocessor(object):
 
     def __init__(self,
                  atom_features: Optional[Callable[[rdkit.Chem.Atom], Hashable]] = None,
-                 bond_features: Optional[Callable[[rdkit.Chem.Bond], Hashable]] = None) -> None:
+                 bond_features: Optional[Callable[[rdkit.Chem.Bond], Hashable]] = None,
+                 output_dtype: str = 'int32',
+                 ) -> None:
 
         self.atom_tokenizer = Tokenizer()
         self.bond_tokenizer = Tokenizer()
@@ -50,6 +52,7 @@ class MolPreprocessor(object):
 
         self.atom_features = atom_features
         self.bond_features = bond_features
+        self.output_dtype = output_dtype
 
         # Keep track of biggest molecules seen in training
         self.max_atoms = 0
@@ -75,11 +78,22 @@ class MolPreprocessor(object):
         """ The number of bond types found (includes the 0 null-bond type) """
         return self.bond_tokenizer.num_classes + 1
 
-    def construct_feature_matrices(self, mol: rdkit.Chem.Mol, train: bool = False) -> {}:
+    def construct_feature_matrices(self,
+                                   mol: rdkit.Chem.Mol,
+                                   train: bool = False,
+                                   max_num_atoms: Optional[int] = None,
+                                   max_num_bonds: Optional[int] = None,
+                                   ) -> {str: np.ndarray}:
         """ Convert an rdkit Mol to a list of tensors
-        'atom' : (n_atom,) length list of atom classes
-        'bond' : (n_bond,) list of bond classes
-        'connectivity' : (n_bond, 2) array of source atom, target atom pairs.
+
+        Parameters
+        ----------
+        mol : rdkit.Chem.Mol
+        train : bool
+        max_num_atoms : int, optional
+            Specify the size of the output arrays with a maximum number of atoms
+        max_num_bonds : int, optional
+            Maximum number of bonds in the output array
         """
 
         self.atom_tokenizer.train = train
@@ -92,9 +106,12 @@ class MolPreprocessor(object):
         if n_bond == 0:
             n_bond = 1
 
-        atom_feature_matrix = np.zeros(n_atom, dtype='int32')
-        bond_feature_matrix = np.zeros(n_bond, dtype='int32')
-        connectivity = np.zeros((n_bond, 2), dtype='int32')
+        max_num_atoms = mol.GetNumAtoms() if max_num_atoms is None else max_num_atoms
+        max_num_bonds = n_bond if max_num_bonds is None else max_num_bonds
+
+        atom_feature_matrix = np.zeros(max_num_atoms, dtype=self.output_dtype)
+        bond_feature_matrix = np.zeros(max_num_bonds, dtype=self.output_dtype)
+        connectivity = np.zeros((max_num_bonds, 2), dtype=self.output_dtype)
 
         if n_bond == 1:
             bond_feature_matrix[0] = self.bond_tokenizer('self-link')
@@ -131,14 +148,16 @@ class MolPreprocessor(object):
             'connectivity': connectivity,
         }
 
-    output_signature = {'atom': tf.TensorSpec(shape=(None,), dtype=tf.int32),
-                        'bond': tf.TensorSpec(shape=(None,), dtype=tf.int32),
-                        'connectivity': tf.TensorSpec(shape=(None, 2), dtype=tf.int32)}
+    @property
+    def output_signature(self):
+        return {'atom': tf.TensorSpec(shape=(None,), dtype=self.output_dtype),
+                'bond': tf.TensorSpec(shape=(None,), dtype=self.output_dtype),
+                'connectivity': tf.TensorSpec(shape=(None, 2), dtype=self.output_dtype)}
 
 
 def load_from_json(obj, data):
     for key, val in obj.__dict__.items():
-        if type(val) == type(data[key]):
+        if isinstance(val, type(data[key])):
             obj.__dict__[key] = data[key]
         elif hasattr(val, '__dict__'):
             load_from_json(val, data[key])
@@ -150,12 +169,11 @@ class SmilesPreprocessor(MolPreprocessor):
         super(SmilesPreprocessor, self).__init__(*args, **kwargs)
         self.explicit_hs = explicit_hs
 
-    def construct_feature_matrices(self, smiles: str, train: bool = False) -> {}:
+    def construct_feature_matrices(self, smiles: str, train: bool = False, **kwargs) -> {}:
         mol = rdkit.Chem.MolFromSmiles(smiles)
         if self.explicit_hs:
             mol = rdkit.Chem.AddHs(mol)
-        return super(SmilesPreprocessor, self).construct_feature_matrices(mol, train=train)
-
+        return super(SmilesPreprocessor, self).construct_feature_matrices(mol, train=train, **kwargs)
 
 
 def get_max_atom_bond_size(smiles_iterator, explicit_hs=True):

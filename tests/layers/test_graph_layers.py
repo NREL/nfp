@@ -125,6 +125,8 @@ def test_masking_message(inputs_no_padding, inputs_with_padding, smiles_inputs):
 
 
 def test_no_residual(inputs_no_padding, inputs_with_padding, smiles_inputs):
+    """ This model might not work when saved and loaded, see
+    https://github.com/tensorflow/tensorflow/issues/38620 """
     preprocessor, inputs = smiles_inputs
 
     atom_class = layers.Input(shape=[None], dtype=tf.int64, name='atom')

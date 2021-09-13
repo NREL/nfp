@@ -146,11 +146,10 @@ class GlobalUpdate(GraphLayer):
     def build(self, input_shape):
         super().build(input_shape)
         dense_units = self.units * self.num_heads  # N*H
-        if self.use_global:
-            assert input_shape[-1][-1] == dense_units
+        # if self.use_global:
+        #     assert input_shape[-1][-1] == dense_units
         self.query_layer = layers.Dense(self.num_heads, name='query')
         self.value_layer = layers.Dense(dense_units, name='value')
-        self.add = layers.Add()
 
     def transpose_scores(self, input_tensor):
         input_shape = tf.shape(input_tensor)
@@ -187,12 +186,7 @@ class GlobalUpdate(GraphLayer):
         if self.dropout > 0.:
             context = self.dropout_layer(context)
 
-        if self.use_global:
-            global_state = self.add([global_state, context])
-        else:
-            global_state = context
-
-        return global_state
+        return context
 
     def get_config(self):
         config = super(GlobalUpdate, self).get_config()

@@ -11,8 +11,6 @@ from tqdm import tqdm
 from nfp.preprocessing import features
 from nfp.preprocessing.features import Tokenizer
 
-zero = tf.constant(0, dtype=tf.int64)
-
 
 class MolPreprocessor(object):
     """A preprocessor to turn a set of SMILES strings into atom, bond, and connectivity inputs suitable for nfp's
@@ -65,6 +63,10 @@ class MolPreprocessor(object):
     def from_json(self, filename):
         with open(filename, 'r') as f:
             json_data = json.load(f)
+
+        # Support json's from earlier versions
+        if 'output_dtype' not in json_data:
+            json_data['output_dtype'] = 'int32'
 
         load_from_json(self, json_data)
 

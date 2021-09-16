@@ -1,10 +1,8 @@
 import numpy as np
-import pytest
 import tensorflow as tf
 from tensorflow.keras import layers
 
 import nfp
-
 
 
 def test_save_and_load_message(inputs_no_padding, inputs_with_padding, smiles_inputs, tmpdir: 'py.path.local'):

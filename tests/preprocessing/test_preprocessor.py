@@ -68,10 +68,11 @@ def test_smiles_preprocessor(explicit_hs, get_2d_smiles):
 
 
 @pytest.mark.parametrize('explicit_hs', [True, False])
-def test_smiles_preprocessor_serialization(explicit_hs, get_2d_smiles):
+@pytest.mark.parametrize('bond_indices', [True, False])
+def test_smiles_preprocessor_serialization(explicit_hs, bond_indices, get_2d_smiles):
     train, test = get_2d_smiles
 
-    preprocessor = SmilesPreprocessor(explicit_hs=explicit_hs)
+    preprocessor = SmilesPreprocessor(explicit_hs=explicit_hs, bond_indices=bond_indices)
     input_train = [preprocessor.construct_feature_matrices(smiles, train=True)
                    for smiles in train]
     input_test = [preprocessor.construct_feature_matrices(smiles, train=False)
@@ -90,3 +91,13 @@ def test_smiles_preprocessor_serialization(explicit_hs, get_2d_smiles):
 
     assert str(input_train) == str(input_train_new)
     assert str(input_test) == str(input_test_new)
+
+
+def test_bond_indices(get_2d_smiles):
+    train, test = get_2d_smiles
+
+    preprocessor = SmilesPreprocessor(bond_indices=True)
+    input_train = [preprocessor.construct_feature_matrices(smiles, train=True)
+                   for smiles in train]
+
+    assert 'bond_indices' in input_train[0]

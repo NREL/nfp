@@ -173,6 +173,12 @@ class MolPreprocessor(object):
 
         return signature
 
+    @property
+    def padding_values(self) -> {str: tf.constant}:
+        """Defaults to zero for each output"""
+        return {key: tf.constant(0, dtype=self.output_dtype)
+                for key in self.output_signature.keys()}
+
 
 def load_from_json(obj, data):
     for key, val in obj.__dict__.items():

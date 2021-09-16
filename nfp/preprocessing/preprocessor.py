@@ -179,6 +179,12 @@ class MolPreprocessor(object):
         return {key: tf.constant(0, dtype=self.output_dtype)
                 for key in self.output_signature.keys()}
 
+    @property
+    def tfrecord_features(self) -> {str: tf.io.FixedLenFeature}:
+        """For loading preprocessed inputs from a tf records file"""
+        return {key: tf.io.FixedLenFeature([], dtype=self.output_dtype if len(val.shape) == 0 else tf.string)
+                for key, val in self.output_signature.items()}
+
 
 def load_from_json(obj, data):
     for key, val in obj.__dict__.items():

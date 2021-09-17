@@ -146,8 +146,6 @@ class GlobalUpdate(GraphLayer):
     def build(self, input_shape):
         super().build(input_shape)
         dense_units = self.units * self.num_heads  # N*H
-        # if self.use_global:
-        #     assert input_shape[-1][-1] == dense_units
         self.query_layer = layers.Dense(self.num_heads, name='query')
         self.value_layer = layers.Dense(dense_units, name='value')
 
@@ -160,7 +158,6 @@ class GlobalUpdate(GraphLayer):
     def call(self, inputs, mask=None):
         if not self.use_global:
             atom_state, bond_state, connectivity = inputs
-            global_state = None
         else:
             atom_state, bond_state, connectivity, global_state = inputs
 

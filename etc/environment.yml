@@ -9,4 +9,4 @@ dependencies:
   - pytest
   - tqdm
   - numpy
-  - tensorflow
+  - tensorflow>=2.5

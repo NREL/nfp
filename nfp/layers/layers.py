@@ -42,22 +42,22 @@ def batched_segment_op(data,
     return tf.reshape(reduced_data, [batch_size, num_segments, data.shape[-1]])
 
 
-class Slice(layers.Layer):
-    def __init__(self, slice_obj, *args, **kwargs):
-        super(Slice, self).__init__(*args, **kwargs)
-        self.slice_obj = slice_obj
-        self.supports_masking = True
-
-    def call(self, inputs, mask=None):
-        return inputs[self.slice_obj]
-
-    def get_config(self):
-        return {'slice_obj': str(self.slice_obj)}
-
-    @classmethod
-    def from_config(cls, config):
-        config['slice_obj'] = eval(config['slice_obj'])
-        return cls(**config)
+# class Slice(layers.Layer):
+#     def __init__(self, slice_obj, *args, **kwargs):
+#         super(Slice, self).__init__(*args, **kwargs)
+#         self.slice_obj = slice_obj
+#         self.supports_masking = True
+#
+#     def call(self, inputs, mask=None):
+#         return inputs[self.slice_obj]
+#
+#     def get_config(self):
+#         return {'slice_obj': str(self.slice_obj)}
+#
+#     @classmethod
+#     def from_config(cls, config):
+#         config['slice_obj'] = eval(config['slice_obj'])
+#         return cls(**config)
 
 
 class Gather(layers.Layer):

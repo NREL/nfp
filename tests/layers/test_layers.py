@@ -7,20 +7,20 @@ from tensorflow.keras import layers
 import nfp
 
 
-def test_slice():
-    connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name='connectivity')
-
-    out0 = nfp.Slice(np.s_[:, :, 0])(connectivity)
-    out1 = nfp.Slice(np.s_[:, :, 1])(connectivity)
-
-    model = tf.keras.Model([connectivity], [out0, out1])
-    inputs = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 0]]).T
-    inputs = inputs[np.newaxis, :, :]
-
-    out = model(inputs)
-
-    assert_allclose(out[0], inputs[:, :, 0])
-    assert_allclose(out[1], inputs[:, :, 1])
+# def test_slice():
+#     connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name='connectivity')
+#
+#     out0 = nfp.Slice(np.s_[:, :, 0])(connectivity)
+#     out1 = nfp.Slice(np.s_[:, :, 1])(connectivity)
+#
+#     model = tf.keras.Model([connectivity], [out0, out1])
+#     inputs = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 0]]).T
+#     inputs = inputs[np.newaxis, :, :]
+#
+#     out = model(inputs)
+#
+#     assert_allclose(out[0], inputs[:, :, 0])
+#     assert_allclose(out[1], inputs[:, :, 1])
 
 
 def test_gather():
@@ -51,7 +51,7 @@ def test_reduce(smiles_inputs, method):
     bond_embed = layers.Embedding(preprocessor.bond_classes, 16, mask_zero=True)(bond_class)
 
     reduced = nfp.Reduce(method)([
-        bond_embed, nfp.Slice(np.s_[:, :, 0])(connectivity), atom_embed])
+        bond_embed, connectivity[:, :, 0], atom_embed])
 
     model = tf.keras.Model([atom_class, bond_class, connectivity],
                            [atom_embed, bond_embed, reduced])

@@ -82,6 +82,10 @@ class Reduce(layers.Layer):
 
         return data, segment_ids, target, data_mask
 
+    def compute_output_shape(self, input_shape):
+        data_shape, _, target_shape = input_shape
+        return [data_shape[0], target_shape[1], data_shape[-1]]
+
     def call(self, inputs, mask=None):
         data, segment_ids, target, data_mask = self._parse_inputs_and_mask(
             inputs, mask)

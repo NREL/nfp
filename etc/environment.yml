@@ -9,4 +9,6 @@ dependencies:
   - pytest
   - tqdm
   - numpy
-  - tensorflow>=2.5
+  - pip
+  - pip:
+      - tensorflow

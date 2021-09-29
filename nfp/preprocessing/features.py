@@ -2,6 +2,7 @@
 # atom and bond features. New ones can be easily added though, and these are
 # passed directly to the Preprocessor class.
 
+
 def get_ring_size(obj, max_size=12):
     if not obj.IsInRing():
         return 0
@@ -27,11 +28,13 @@ def atom_features_v1(atom):
 
 
 def atom_features_v2(atom):
-    props = ['GetChiralTag', 'GetDegree', 'GetExplicitValence',
-             'GetFormalCharge', 'GetHybridization', 'GetImplicitValence',
-             'GetIsAromatic', 'GetNoImplicit', 'GetNumExplicitHs',
-             'GetNumImplicitHs', 'GetNumRadicalElectrons', 'GetSymbol',
-             'GetTotalDegree', 'GetTotalNumHs', 'GetTotalValence']
+    props = [
+        'GetChiralTag', 'GetDegree', 'GetExplicitValence', 'GetFormalCharge',
+        'GetHybridization', 'GetImplicitValence', 'GetIsAromatic',
+        'GetNoImplicit', 'GetNumExplicitHs', 'GetNumImplicitHs',
+        'GetNumRadicalElectrons', 'GetSymbol', 'GetTotalDegree',
+        'GetTotalNumHs', 'GetTotalValence'
+    ]
 
     atom_type = [getattr(atom, prop)() for prop in props]
     atom_type += [get_ring_size(atom)]
@@ -41,9 +44,10 @@ def atom_features_v2(atom):
 
 def bond_features_v1(bond, **kwargs):
     """ Return an integer hash representing the bond type.
-    
+
     flipped : bool
-        Only valid for 'v3' version, whether to swap the begin and end atom types
+        Only valid for 'v3' version, whether to swap the begin and end atom
+        types
 
     """
 
@@ -51,9 +55,9 @@ def bond_features_v1(bond, **kwargs):
         bond.GetBondType(),
         bond.GetIsConjugated(),
         bond.IsInRing(),
-        sorted([
-            bond.GetBeginAtom().GetSymbol(),
-            bond.GetEndAtom().GetSymbol()]),
+        sorted(
+            [bond.GetBeginAtom().GetSymbol(),
+             bond.GetEndAtom().GetSymbol()]),
     ))
 
 
@@ -63,9 +67,9 @@ def bond_features_v2(bond, **kwargs):
         bond.GetIsConjugated(),
         bond.GetStereo(),
         get_ring_size(bond),
-        sorted([
-            bond.GetBeginAtom().GetSymbol(),
-            bond.GetEndAtom().GetSymbol()]),
+        sorted(
+            [bond.GetBeginAtom().GetSymbol(),
+             bond.GetEndAtom().GetSymbol()]),
     ))
 
 
@@ -78,11 +82,6 @@ def bond_features_v3(bond, flipped=False):
         start_atom = atom_features_v1(bond.GetEndAtom())
         end_atom = atom_features_v1(bond.GetBeginAtom())
 
-    return str((
-        bond.GetBondType(),
-        bond.GetIsConjugated(),
-        bond.GetStereo(),
-        get_ring_size(bond),
-        bond.GetEndAtom().GetSymbol(),
-        start_atom,
-        end_atom))
+    return str((bond.GetBondType(), bond.GetIsConjugated(), bond.GetStereo(),
+                get_ring_size(bond), bond.GetEndAtom().GetSymbol(), start_atom,
+                end_atom))

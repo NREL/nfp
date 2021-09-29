@@ -8,7 +8,7 @@ import nfp
 def smiles_inputs():
     preprocessor = nfp.SmilesPreprocessor()
     dataset = tf.data.Dataset.from_generator(
-        lambda: (preprocessor.construct_feature_matrices(smiles, train=True)
+        lambda: (preprocessor(smiles, train=True)
                  for smiles in ['CC', 'CCC', 'C1CC1', 'C']),
         output_signature=preprocessor.output_signature) \
         .padded_batch(batch_size=4)
@@ -21,7 +21,7 @@ def inputs_no_padding(smiles_inputs):
     preprocessor, inputs = smiles_inputs
 
     dataset = tf.data.Dataset.from_generator(
-        lambda: (preprocessor.construct_feature_matrices(smiles, train=True)
+        lambda: (preprocessor(smiles, train=True)
                  for smiles in ['CC', 'CCC', 'C(C)C', 'C']),
         output_signature=preprocessor.output_signature) \
         .padded_batch(batch_size=4)
@@ -34,7 +34,7 @@ def inputs_with_padding(smiles_inputs):
     preprocessor, inputs = smiles_inputs
 
     dataset = tf.data.Dataset.from_generator(
-        lambda: (preprocessor.construct_feature_matrices(smiles, train=True)
+        lambda: (preprocessor(smiles, train=True)
                  for smiles in ['CC', 'CCC', 'C(C)C', 'C']),
         output_signature=preprocessor.output_signature) \
         .padded_batch(batch_size=4,

@@ -111,3 +111,4 @@ examples/*.tfrecord
 examples/*.p
 examples/*.h5
 .idea/
+.vscode/settings.json

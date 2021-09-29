@@ -3,7 +3,11 @@ from tensorflow.keras import layers
 
 
 class RBFExpansion(layers.Layer):
-    def __init__(self, dimension=128, init_gap=10, init_max_distance=7, trainable=False):
+    def __init__(self,
+                 dimension=128,
+                 init_gap=10,
+                 init_max_distance=7,
+                 trainable=False):
         """ Layer to calculate radial basis function 'embeddings' for a continuous input variable. The width and
         location of each bin can be optionally trained. Essentially equivalent to a 1-hot embedding for a continous
         variable.
@@ -24,32 +28,37 @@ class RBFExpansion(layers.Layer):
     def build(self, input_shape):
         self.centers = tf.Variable(
             name='centers',
-            initial_value=tf.range(0, self.init_max_distance,
-                                   delta=self.init_max_distance / self.dimension),
+            initial_value=tf.range(0,
+                                   self.init_max_distance,
+                                   delta=self.init_max_distance /
+                                   self.dimension),
             trainable=self.trainable,
             dtype=tf.float32)
 
-        self.gap = tf.Variable(
-            name='gap',
-            initial_value=tf.constant(self.init_gap, dtype=tf.float32),
-            trainable=self.trainable,
-            dtype=tf.float32)
+        self.gap = tf.Variable(name='gap',
+                               initial_value=tf.constant(self.init_gap,
+                                                         dtype=tf.float32),
+                               trainable=self.trainable,
+                               dtype=tf.float32)
 
     def call(self, inputs, **kwargs):
-        distances = tf.where(
-            tf.math.is_nan(inputs), tf.zeros_like(inputs, dtype=inputs.dtype), inputs)
-        offset = tf.expand_dims(distances, -1) - tf.cast(self.centers, inputs.dtype)
-        logits = -self.gap * offset ** 2
+        distances = tf.where(tf.math.is_nan(inputs),
+                             tf.zeros_like(inputs, dtype=inputs.dtype), inputs)
+        offset = tf.expand_dims(distances, -1) - tf.cast(
+            self.centers, inputs.dtype)
+        logits = -self.gap * offset**2
         return tf.exp(logits)
 
     def compute_mask(self, inputs, mask=None):
         return tf.logical_not(tf.math.is_nan(inputs))
 
     def get_config(self):
-        return {'init_gap': self.init_gap,
-                'init_max_distance': self.init_max_distance,
-                'dimension': self.dimension,
-                'trainable': self.trainable}
+        return {
+            'init_gap': self.init_gap,
+            'init_max_distance': self.init_max_distance,
+            'dimension': self.dimension,
+            'trainable': self.trainable
+        }
 
 
 def batched_segment_op(data,
@@ -138,12 +147,11 @@ class Reduce(layers.Layer):
         data, segment_ids, target, data_mask = self._parse_inputs_and_mask(
             inputs, mask)
         num_segments = tf.shape(target, out_type=segment_ids.dtype)[1]
-        return batched_segment_op(
-            data,
-            segment_ids,
-            num_segments,
-            data_mask=data_mask,
-            reduction=self.reduction)
+        return batched_segment_op(data,
+                                  segment_ids,
+                                  num_segments,
+                                  data_mask=data_mask,
+                                  reduction=self.reduction)
 
     def get_config(self):
         return {'reduction': self.reduction}
@@ -152,7 +160,6 @@ class Reduce(layers.Layer):
 class ConcatDense(layers.Layer):
     """ Layer to combine the concatenation and two dense layers. Just useful as a common operation in the graph
     layers """
-
     def __init__(self, **kwargs):
         super(ConcatDense, self).__init__(**kwargs)
         self.supports_masking = True

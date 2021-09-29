@@ -86,3 +86,7 @@ def test_tile():
 
     assert list(out.shape) == shape
     assert np.all(out[:, 0, :] == out[:, 1, :])
+
+
+def test_RBFExpansion():
+    pass

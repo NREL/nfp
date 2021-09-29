@@ -9,6 +9,7 @@ dependencies:
   - pytest
   - tqdm
   - numpy
+  - networkx
   - pip
   - pip:
       - tensorflow

@@ -1,9 +1,11 @@
 import tempfile
 
+import numpy as np
 import pytest
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
+from nfp import SmilesBondIndexPreprocessor
 from nfp.preprocessing import SmilesPreprocessor
 
 
@@ -72,32 +74,33 @@ def test_smiles_preprocessor(explicit_hs, get_2d_smiles):
 def test_smiles_preprocessor_serialization(explicit_hs, bond_indices, get_2d_smiles):
     train, test = get_2d_smiles
 
-    preprocessor = SmilesPreprocessor(explicit_hs=explicit_hs, bond_indices=bond_indices)
-    input_train = [preprocessor.construct_feature_matrices(smiles, train=True)
-                   for smiles in train]
-    input_test = [preprocessor.construct_feature_matrices(smiles, train=False)
-                  for smiles in test]
+    preprocessor_class = SmilesBondIndexPreprocessor if bond_indices else SmilesPreprocessor
+    preprocessor = preprocessor_class(explicit_hs=explicit_hs)
+
+    input_train = [preprocessor(smiles, train=True) for smiles in train]
+    input_test = [preprocessor(smiles, train=False) for smiles in test]
 
     with tempfile.NamedTemporaryFile(suffix='.json') as file:
         preprocessor.to_json(file.name)
         del preprocessor
-        preprocessor = SmilesPreprocessor()
+        preprocessor = preprocessor_class()
         preprocessor.from_json(file.name)
 
-    input_train_new = [preprocessor.construct_feature_matrices(
-        smiles, train=True) for smiles in train]
-    input_test_new = [preprocessor.construct_feature_matrices(
-        smiles, train=False) for smiles in test]
+    input_train_new = [preprocessor(smiles, train=False) for smiles in train]
+    input_test_new = [preprocessor(smiles, train=False) for smiles in test]
 
-    assert str(input_train) == str(input_train_new)
-    assert str(input_test) == str(input_test_new)
+    for i in range(len(input_train)):
+        for key in input_train[i].keys():
+            assert np.allclose(input_train[i][key], input_train_new[i][key])
+
+    for i in range(len(input_test)):
+        for key in input_test[i].keys():
+            assert np.allclose(input_test[i][key], input_test_new[i][key])
 
 
 def test_bond_indices(get_2d_smiles):
     train, test = get_2d_smiles
 
-    preprocessor = SmilesPreprocessor(bond_indices=True)
-    input_train = [preprocessor.construct_feature_matrices(smiles, train=True)
-                   for smiles in train]
-
+    preprocessor = SmilesBondIndexPreprocessor()
+    input_train = [preprocessor(smiles, train=True) for smiles in train]
     assert 'bond_indices' in input_train[0]

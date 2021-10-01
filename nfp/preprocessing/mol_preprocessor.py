@@ -41,7 +41,8 @@ class MolPreprocessor(Preprocessor):
         }) for bond in mol.GetBonds()))
         return nx.DiGraph(g)
 
-    def get_edge_features(self, edge_data: list, max_num_edges) -> Dict[str, np.ndarray]:
+    def get_edge_features(self, edge_data: list,
+                          max_num_edges) -> Dict[str, np.ndarray]:
         bond_feature_matrix = np.zeros(max_num_edges, dtype=self.output_dtype)
         for n, (start_atom, end_atom, bond_dict) in enumerate(edge_data):
             bond_feature_matrix[n] = self.bond_tokenizer(

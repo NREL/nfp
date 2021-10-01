@@ -2,7 +2,7 @@ import pytest
 from rdkit import Chem
 
 from nfp.preprocessing import features
-from nfp import Tokenizer
+from nfp.preprocessing.tokenizer import Tokenizer
 
 
 @pytest.fixture()

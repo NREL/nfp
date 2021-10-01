@@ -5,8 +5,7 @@ import pytest
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-from nfp import SmilesBondIndexPreprocessor
-from nfp.preprocessing import SmilesPreprocessor
+from nfp.preprocessing.mol_preprocessor import SmilesBondIndexPreprocessor, SmilesPreprocessor
 
 
 @pytest.fixture()

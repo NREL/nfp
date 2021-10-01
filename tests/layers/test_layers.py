@@ -6,7 +6,6 @@ from tensorflow.keras import layers
 
 import nfp
 
-
 # def test_slice():
 #     connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name='connectivity')
 #
@@ -45,19 +44,25 @@ def test_reduce(smiles_inputs, method):
 
     atom_class = layers.Input(shape=[None], dtype=tf.int64, name='atom')
     bond_class = layers.Input(shape=[None], dtype=tf.int64, name='bond')
-    connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name='connectivity')
+    connectivity = layers.Input(shape=[None, 2],
+                                dtype=tf.int64,
+                                name='connectivity')
 
-    atom_embed = layers.Embedding(preprocessor.atom_classes, 16, mask_zero=True)(atom_class)
-    bond_embed = layers.Embedding(preprocessor.bond_classes, 16, mask_zero=True)(bond_class)
+    atom_embed = layers.Embedding(preprocessor.atom_classes,
+                                  16,
+                                  mask_zero=True)(atom_class)
+    bond_embed = layers.Embedding(preprocessor.bond_classes,
+                                  16,
+                                  mask_zero=True)(bond_class)
 
-    reduced = nfp.Reduce(method)([
-        bond_embed, connectivity[:, :, 0], atom_embed])
+    reduced = nfp.Reduce(method)(
+        [bond_embed, connectivity[:, :, 0], atom_embed])
 
     model = tf.keras.Model([atom_class, bond_class, connectivity],
                            [atom_embed, bond_embed, reduced])
 
-    atom_state, bond_state, atom_reduced = model([inputs['atom'], inputs['bond'],
-                                                  inputs['connectivity']])
+    atom_state, bond_state, atom_reduced = model(
+        [inputs['atom'], inputs['bond'], inputs['connectivity']])
 
     assert_allclose(atom_reduced[0, 0, :], func(bond_state[0, :4, :], 0))
     assert_allclose(atom_reduced[0, 1, :], func(bond_state[0, 4:8, :], 0))

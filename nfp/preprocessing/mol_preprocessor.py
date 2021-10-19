@@ -12,11 +12,12 @@ from nfp.preprocessing.tokenizer import Tokenizer
 
 class MolPreprocessor(Preprocessor):
     def __init__(
-        self,
-        atom_features: Optional[Callable[[rdkit.Chem.Atom], Hashable]] = None,
-        bond_features: Optional[Callable[[rdkit.Chem.Bond], Hashable]] = None,
-        output_dtype: str = 'int32',
+            self,
+            atom_features: Optional[Callable[[rdkit.Chem.Atom], Hashable]] = None,
+            bond_features: Optional[Callable[[rdkit.Chem.Bond], Hashable]] = None,
+            **kwargs,
     ) -> None:
+        super(MolPreprocessor, self).__init__(**kwargs)
 
         self.atom_tokenizer = Tokenizer()
         self.bond_tokenizer = Tokenizer()
@@ -29,7 +30,6 @@ class MolPreprocessor(Preprocessor):
 
         self.atom_features = atom_features
         self.bond_features = bond_features
-        self.output_dtype = output_dtype
 
     def create_nx_graph(self, mol: rdkit.Chem.Mol, **kwargs) -> nx.DiGraph:
         g = nx.Graph(mol=mol)
@@ -49,9 +49,8 @@ class MolPreprocessor(Preprocessor):
                 self.bond_features(
                     bond_dict['bond'],
                     flipped=(
-                        start_atom == bond_dict['bond'].GetBeginAtomIdx())))
-        if len(edge_data) == 0:
-            bond_feature_matrix[0] = self.bond_tokenizer('self-link')
+                            start_atom == bond_dict['bond'].GetBeginAtomIdx())))
+
         return {'bond': bond_feature_matrix}
 
     def get_node_features(self, node_data: list,
@@ -78,8 +77,8 @@ class MolPreprocessor(Preprocessor):
     @property
     def output_signature(self) -> Dict[str, tf.TensorSpec]:
         return {
-            'atom': tf.TensorSpec(shape=(None, ), dtype=self.output_dtype),
-            'bond': tf.TensorSpec(shape=(None, ), dtype=self.output_dtype),
+            'atom': tf.TensorSpec(shape=(None,), dtype=self.output_dtype),
+            'bond': tf.TensorSpec(shape=(None,), dtype=self.output_dtype),
             'connectivity': tf.TensorSpec(shape=(None, 2),
                                           dtype=self.output_dtype)
         }
@@ -118,7 +117,6 @@ class SmilesPreprocessor(MolPreprocessor):
 class BondIndexPreprocessor(MolPreprocessor):
     def get_edge_features(self, edge_data: list,
                           max_num_edges) -> Dict[str, np.ndarray]:
-
         bond_indices = np.zeros(max_num_edges, dtype=self.output_dtype)
         for n, (_, _, edge_dict) in enumerate(edge_data):
             bond_indices[n] = edge_dict['bond'].GetIdx()
@@ -129,7 +127,7 @@ class BondIndexPreprocessor(MolPreprocessor):
     @property
     def output_signature(self) -> Dict[str, tf.TensorSpec]:
         signature = super(BondIndexPreprocessor, self).output_signature
-        signature['bond_indices'] = tf.TensorSpec(shape=(None, ),
+        signature['bond_indices'] = tf.TensorSpec(shape=(None,),
                                                   dtype=self.output_dtype)
         return signature
 

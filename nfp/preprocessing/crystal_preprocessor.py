@@ -9,11 +9,12 @@ from nfp.preprocessing.tokenizer import Tokenizer
 
 
 class PymatgenPreprocessor(PreprocessorMultiGraph):
-    def __init__(self, radius=None, num_neighbors=12, output_dtype='int32'):
+    def __init__(self, radius=None, num_neighbors=12, **kwargs):
+        super(PymatgenPreprocessor, self).__init__(**kwargs)
         self.site_tokenizer = Tokenizer()
         self.radius = radius
         self.num_neighbors = num_neighbors
-        self.output_dtype = output_dtype
+
 
     def create_nx_graph(self, crystal, **kwargs) -> nx.MultiDiGraph:
         """ crystal should be a pymatgen.core.Structure object.

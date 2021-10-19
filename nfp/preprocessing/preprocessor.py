@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class Preprocessor(ABC):
+    def __init__(self, output_dtype: str = 'int32'):
+        self.output_dtype = output_dtype
+
     @abstractmethod
     def create_nx_graph(self, structure: Any, **kwargs) -> nx.DiGraph:
         pass
@@ -50,7 +53,7 @@ class Preprocessor(ABC):
 
     @staticmethod
     def get_connectivity(graph: nx.DiGraph) -> Dict[str, np.ndarray]:
-        return {'connectivity': np.asarray(graph.edges)}
+        return {'connectivity': np.asarray(graph.edges, dtype='int64')}
 
     def __call__(self,
                  structure: Any,
@@ -60,17 +63,11 @@ class Preprocessor(ABC):
                  **kwargs) -> Dict[str, np.ndarray]:
         nx_graph = self.create_nx_graph(structure, **kwargs)
 
-        max_num_edges = max(1, len(
-            nx_graph.edges)) if max_num_edges is None else max_num_edges
-        assert len(
-            nx_graph.edges
-        ) <= max_num_edges, "max_num_edges too small for given input"
+        max_num_edges = len(nx_graph.edges) if max_num_edges is None else max_num_edges
+        assert len(nx_graph.edges) <= max_num_edges, "max_num_edges too small for given input"
 
-        max_num_nodes = len(
-            nx_graph.nodes) if max_num_nodes is None else max_num_nodes
-        assert len(
-            nx_graph.nodes
-        ) <= max_num_nodes, "max_num_nodes too small for given input"
+        max_num_nodes = len(nx_graph.nodes) if max_num_nodes is None else max_num_nodes
+        assert len(nx_graph.nodes) <= max_num_nodes, "max_num_nodes too small for given input"
 
         # Make sure that Tokenizer classes are correctly initialized
         for _, tokenizer in getmembers(self, lambda x: type(x) == Tokenizer):

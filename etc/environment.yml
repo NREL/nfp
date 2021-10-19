@@ -8,7 +8,7 @@ dependencies:
   - rdkit
   - pytest
   - tqdm
-  - numpy
+  - numpy=1.19
   - networkx
   - pymatgen
   - pip

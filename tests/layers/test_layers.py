@@ -6,6 +6,7 @@ from tensorflow.keras import layers
 
 import nfp
 
+
 # def test_slice():
 #     connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name='connectivity')
 #
@@ -93,5 +94,24 @@ def test_tile():
     assert np.all(out[:, 0, :] == out[:, 1, :])
 
 
-def test_RBFExpansion():
-    pass
+def test_RBFExpansion(crystals_and_preprocessor):
+    preprocessor, inputs = crystals_and_preprocessor
+    input_distance = inputs['distance'].numpy()
+    assert np.nanmin(input_distance) > 1  # we shouldn't be padding with zeros
+
+    input_distance[0, 0] = 2
+    input_distance[0, 1] = 3
+    input_distance[0, 2] = 4
+
+    distance = layers.Input(shape=[None], dtype=tf.float32, name='distance')
+    rbf_distance = nfp.RBFExpansion(dimension=10, init_gap=10, init_max_distance=10,)(distance)
+
+    model = tf.keras.Model([distance], [rbf_distance])
+    embedded_distance = model(input_distance)
+
+    # The first column of the valid distances should be essentially zero
+    assert embedded_distance[embedded_distance._keras_mask][:, 0].numpy().max() < 1E-8
+
+    assert embedded_distance[0, 0].numpy().argmax() == 2
+    assert embedded_distance[0, 1].numpy().argmax() == 3
+    assert embedded_distance[0, 2].numpy().argmax() == 4

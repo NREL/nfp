@@ -6,6 +6,7 @@ import nfp
 
 class GraphLayer(layers.Layer):
     """ Base class for all GNN layers """
+
     def __init__(self, dropout: float = 0.0, **kwargs):
         super().__init__(**kwargs)
         self.dropout = dropout
@@ -39,9 +40,10 @@ class EdgeUpdate(GraphLayer):
         self.gather = nfp.Gather()
         self.concat = nfp.ConcatDense()
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         """ Inputs: [atom_state, bond_state, connectivity]
             Outputs: bond_state
+
         """
         if not self.use_global:
             atom_state, bond_state, connectivity = inputs
@@ -89,9 +91,10 @@ class NodeUpdate(GraphLayer):
         self.dense1 = layers.Dense(2 * num_features, activation='relu')
         self.dense2 = layers.Dense(num_features)
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         """ Inputs: [atom_state, bond_state, connectivity]
             Outputs: atom_state
+
         """
         if not self.use_global:
             atom_state, bond_state, connectivity = inputs
@@ -154,7 +157,7 @@ class GlobalUpdate(GraphLayer):
         output_tensor = tf.reshape(input_tensor, output_shape)
         return tf.transpose(a=output_tensor, perm=[0, 2, 1, 3])  # [B,N,S,H]
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         if not self.use_global:
             atom_state, bond_state, connectivity = inputs
         else:

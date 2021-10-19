@@ -1,12 +1,12 @@
 import json
-import pytest
+import os
 
+import pytest
 import tensorflow as tf
 from pymatgen.core import Structure
 
 import nfp
 from nfp.preprocessing.crystal_preprocessor import PymatgenPreprocessor
-import os
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -58,6 +58,7 @@ def structure_inputs():
 
     return structures
 
+
 @pytest.fixture(scope='module')
 def crystals_and_preprocessor(structure_inputs):
     preprocessor = PymatgenPreprocessor()
@@ -65,6 +66,6 @@ def crystals_and_preprocessor(structure_inputs):
         lambda: (preprocessor(struct, train=True)
                  for struct in structure_inputs),
         output_signature=preprocessor.output_signature) \
-        .padded_batch(batch_size=5)
+        .padded_batch(batch_size=5, padding_values=preprocessor.padding_values)
 
     return preprocessor, list(dataset.take(1))[0]

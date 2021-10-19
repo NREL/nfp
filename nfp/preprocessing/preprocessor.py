@@ -22,7 +22,6 @@ class Preprocessor(ABC):
     @abstractmethod
     def get_edge_features(self, edge_data: list,
                           max_num_edges) -> Dict[str, np.ndarray]:
-
         pass
 
     @abstractmethod
@@ -59,7 +58,6 @@ class Preprocessor(ABC):
                  max_num_nodes: Optional[int] = None,
                  max_num_edges: Optional[int] = None,
                  **kwargs) -> Dict[str, np.ndarray]:
-
         nx_graph = self.create_nx_graph(structure, **kwargs)
 
         max_num_edges = max(1, len(
@@ -113,7 +111,33 @@ class Preprocessor(ABC):
         load_from_json(self, json_data)
 
 
+class PreprocessorMultiGraph(Preprocessor, ABC):
+    """Class to handle graphs with parallel edges and self-loops"""
+
+    @abstractmethod
+    def create_nx_graph(self, structure: Any, **kwargs) -> nx.MultiDiGraph:
+        pass
+
+    @staticmethod
+    def get_connectivity(graph: nx.DiGraph) -> Dict[str, np.ndarray]:
+        # Don't include keys in the connectivity matrix
+        return {'connectivity': np.asarray(graph.edges)[:, :2]}
+
+
 def load_from_json(obj, data):
+    """Function to set member attributes from json data recursively.
+
+    Parameters
+    ----------
+    obj: the class to initialize
+    data: a dictionary of potentially nested attribute: value pairs
+
+    Returns
+    -------
+    The object, with attributes set to those from the data file.
+
+    """
+
     for key, val in obj.__dict__.items():
         try:
             if isinstance(val, type(data[key])):

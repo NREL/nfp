@@ -114,8 +114,8 @@ def test_masking(inputs_no_padding, inputs_with_padding, smiles_inputs, layer):
 
     if update_state_global_pad.ndim > 2:
         update_state_global_pad = update_state_global_pad[:, :
-                                                          update_state_global.
-                                                          shape[1], :]
+                                                             update_state_global.
+                                                                 shape[1], :]
 
     assert np.all(np.isclose(update_state, update_state_pad, atol=1E-4))
     assert np.all(

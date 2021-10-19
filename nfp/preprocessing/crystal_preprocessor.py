@@ -4,21 +4,21 @@ import networkx as nx
 import numpy as np
 import tensorflow as tf
 
-from nfp.preprocessing.preprocessor import Preprocessor
+from nfp.preprocessing.preprocessor import PreprocessorMultiGraph
 from nfp.preprocessing.tokenizer import Tokenizer
 
 
-class PymatgenPreprocessor(Preprocessor):
+class PymatgenPreprocessor(PreprocessorMultiGraph):
     def __init__(self, radius=None, num_neighbors=12, output_dtype='int32'):
         self.site_tokenizer = Tokenizer()
         self.radius = radius
         self.num_neighbors = num_neighbors
         self.output_dtype = output_dtype
 
-    def create_nx_graph(self, crystal, **kwargs) -> nx.DiGraph:
+    def create_nx_graph(self, crystal, **kwargs) -> nx.MultiDiGraph:
         """ crystal should be a pymatgen.core.Structure object.
         """
-        g = nx.Graph(crystal=crystal)
+        g = nx.MultiDiGraph(crystal=crystal)
         g.add_nodes_from(((i, {
             'site': site
         }) for i, site in enumerate(crystal.sites)))
@@ -28,7 +28,7 @@ class PymatgenPreprocessor(Preprocessor):
             # expected to yield 2x the desired number of neighbors
             desired_vol = (crystal.volume /
                            crystal.num_sites) * self.num_neighbors
-            radius = 2 * (desired_vol / (4 * np.pi / 3))**(1 / 3)
+            radius = 2 * (desired_vol / (4 * np.pi / 3)) ** (1 / 3)
         else:
             radius = self.radius
 
@@ -47,7 +47,10 @@ class PymatgenPreprocessor(Preprocessor):
 
     def get_edge_features(self, edge_data: list,
                           max_num_edges) -> Dict[str, np.ndarray]:
-        edge_feature_matrix = np.zeros(max_num_edges, dtype='float32')
+
+        edge_feature_matrix = np.empty(max_num_edges, dtype='float32')
+        edge_feature_matrix[:] = np.nan  # Initialize distances with nans
+
         for n, (_, _, edge_dict) in enumerate(edge_data):
             edge_feature_matrix[n] = edge_dict['distance']
         return {'distance': edge_feature_matrix}
@@ -76,8 +79,8 @@ class PymatgenPreprocessor(Preprocessor):
     @property
     def output_signature(self) -> Dict[str, tf.TensorSpec]:
         return {
-            'site': tf.TensorSpec(shape=(None, ), dtype=self.output_dtype),
-            'distance': tf.TensorSpec(shape=(None, ), dtype='float32'),
+            'site': tf.TensorSpec(shape=(None,), dtype=self.output_dtype),
+            'distance': tf.TensorSpec(shape=(None,), dtype='float32'),
             'connectivity': tf.TensorSpec(shape=(None, 2),
                                           dtype=self.output_dtype)
         }

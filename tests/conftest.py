@@ -3,7 +3,6 @@ import os
 
 import pytest
 import tensorflow as tf
-from pymatgen.core import Structure
 
 import nfp
 from nfp.preprocessing.crystal_preprocessor import PymatgenPreprocessor
@@ -52,9 +51,10 @@ def inputs_with_padding(smiles_inputs):
 
 @pytest.fixture(scope='module')
 def structure_inputs():
+    pymatgen = pytest.importorskip('pymatgen')
     with open(os.path.join(dir_path, 'structure_data.json'), 'r') as f:
         structures_dict = json.loads(f.read())
-        structures = [Structure.from_dict(item) for item in structures_dict.values()]
+        structures = [pymatgen.core.Structure.from_dict(item) for item in structures_dict.values()]
 
     return structures
 

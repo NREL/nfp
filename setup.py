@@ -44,7 +44,7 @@ setup(
     ],
 
     packages=find_packages(exclude=['docs', 'tests']),  # Required
-    install_requires=['numpy', 'tqdm', 'tensorflow>=2.4'],
+    install_requires=['numpy', 'tqdm', 'tensorflow>=2.4', 'networkx>2.0'],
 
     project_urls={
         'Source': 'https://github.com/NREL/nfp',

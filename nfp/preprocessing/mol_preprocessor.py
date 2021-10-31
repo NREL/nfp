@@ -45,11 +45,9 @@ class MolPreprocessor(Preprocessor):
                           max_num_edges) -> Dict[str, np.ndarray]:
         bond_feature_matrix = np.zeros(max_num_edges, dtype=self.output_dtype)
         for n, (start_atom, end_atom, bond_dict) in enumerate(edge_data):
+            flipped = start_atom == bond_dict['bond'].GetEndAtomIdx()
             bond_feature_matrix[n] = self.bond_tokenizer(
-                self.bond_features(
-                    bond_dict['bond'],
-                    flipped=(
-                            start_atom == bond_dict['bond'].GetBeginAtomIdx())))
+                self.bond_features(bond_dict['bond'], flipped=flipped))
 
         return {'bond': bond_feature_matrix}
 

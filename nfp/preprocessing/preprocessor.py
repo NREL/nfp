@@ -52,8 +52,11 @@ class Preprocessor(ABC):
         pass
 
     @staticmethod
-    def get_connectivity(graph: nx.DiGraph) -> Dict[str, np.ndarray]:
-        return {'connectivity': np.asarray(graph.edges, dtype='int64')}
+    def get_connectivity(graph: nx.DiGraph, max_num_edges: int) -> Dict[str, np.ndarray]:
+        connectivity = np.zeros((max_num_edges, 2), dtype='int64')
+        if len(graph.edges) > 0:  # Handle odd case with no edges
+            connectivity[:len(graph.edges)] = np.asarray(graph.edges)
+        return {'connectivity': connectivity}
 
     def __call__(self,
                  structure: Any,
@@ -73,12 +76,10 @@ class Preprocessor(ABC):
         for _, tokenizer in getmembers(self, lambda x: type(x) == Tokenizer):
             tokenizer.train = train
 
-        node_features = self.get_node_features(nx_graph.nodes(data=True),
-                                               max_num_nodes)
-        edge_features = self.get_edge_features(nx_graph.edges(data=True),
-                                               max_num_edges)
+        node_features = self.get_node_features(nx_graph.nodes(data=True), max_num_nodes)
+        edge_features = self.get_edge_features(nx_graph.edges(data=True), max_num_edges)
         graph_features = self.get_graph_features(nx_graph.graph)
-        connectivity = self.get_connectivity(nx_graph)
+        connectivity = self.get_connectivity(nx_graph, max_num_edges)
 
         return {
             **node_features,
@@ -116,9 +117,12 @@ class PreprocessorMultiGraph(Preprocessor, ABC):
         pass
 
     @staticmethod
-    def get_connectivity(graph: nx.DiGraph) -> Dict[str, np.ndarray]:
+    def get_connectivity(graph: nx.DiGraph, max_num_edges: int) -> Dict[str, np.ndarray]:
         # Don't include keys in the connectivity matrix
-        return {'connectivity': np.asarray(graph.edges)[:, :2]}
+        connectivity = np.zeros((max_num_edges, 2), dtype='int64')
+        if len(graph.edges) > 0:  # Handle odd case with no edges
+            connectivity[:len(graph.edges)] = np.asarray(graph.edges)[:, :2]
+        return {'connectivity': connectivity}
 
 
 def load_from_json(obj, data):

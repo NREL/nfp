@@ -15,7 +15,6 @@ class PymatgenPreprocessor(PreprocessorMultiGraph):
         self.radius = radius
         self.num_neighbors = num_neighbors
 
-
     def create_nx_graph(self, crystal, **kwargs) -> nx.MultiDiGraph:
         """ crystal should be a pymatgen.core.Structure object.
         """

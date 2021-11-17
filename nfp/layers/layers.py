@@ -31,7 +31,7 @@ class RBFExpansion(layers.Layer):
             initial_value=tf.range(0,
                                    self.init_max_distance,
                                    delta=self.init_max_distance /
-                                   self.dimension),
+                                         self.dimension),
             trainable=self.trainable,
             dtype=tf.float32)
 
@@ -46,7 +46,7 @@ class RBFExpansion(layers.Layer):
                              tf.zeros_like(inputs, dtype=inputs.dtype), inputs)
         offset = tf.expand_dims(distances, -1) - tf.cast(
             self.centers, inputs.dtype)
-        logits = -self.gap * offset**2
+        logits = -self.gap * offset ** 2
         return tf.exp(logits)
 
     def compute_mask(self, inputs, mask=None):
@@ -160,6 +160,7 @@ class Reduce(layers.Layer):
 class ConcatDense(layers.Layer):
     """ Layer to combine the concatenation and two dense layers. Just useful as a common operation in the graph
     layers """
+
     def __init__(self, **kwargs):
         super(ConcatDense, self).__init__(**kwargs)
         self.supports_masking = True

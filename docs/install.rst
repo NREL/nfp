@@ -9,18 +9,5 @@ NFP can be installed with pip into a suitable python environment with
    pip install nfp
 
 
-The tensorflow and rdkit dependencies can be tricky to install. A recommended conda environment is
-
-.. code-block:: yaml
-
-    channels:
-      - conda-forge
-      - defaults
-
-    dependencies:
-      - rdkit
-      - pytest
-      - tqdm
-      - pip
-      - pip:
-          - tensorflow>=2.0
+The only dependency that is not pip-installable is rdkit, which can be
+`installed via conda-forge <https://www.rdkit.org/docs/Install.html>`_.

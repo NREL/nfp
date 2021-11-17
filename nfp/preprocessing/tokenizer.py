@@ -4,7 +4,7 @@ class Tokenizer(object):
     def __init__(self):
         # the default class for an unseen entry during test-time
         self._data = {'unk': 1}
-        self.num_classes = 1
+        self._num_classes = 1
         self.train = True
         self.unknown = []
 
@@ -28,6 +28,11 @@ class Tokenizer(object):
                 self.unknown += [item]
                 return self._data['unk']
 
+    @property
+    def num_classes(self) -> int:
+        """The maximum number of assigned classes"""
+        return self._num_classes
+
     def _add_token(self, item):
-        self.num_classes += 1
-        self._data[item] = self.num_classes
+        self._num_classes += 1
+        self._data[item] = self._num_classes

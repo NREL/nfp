@@ -1,2 +1,4 @@
 nbsphinx
+ipython
 jupytext
+jupyter

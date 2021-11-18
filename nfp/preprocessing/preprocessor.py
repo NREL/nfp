@@ -187,7 +187,11 @@ class Preprocessor(ABC):
                                    *args,
                                    train=False,
                                    **kwargs) -> Dict[str, np.ndarray]:
-        """DEPRECATED, use __call__ instead"""
+        """
+        .. deprecated:: 0.3.0
+            `construct_feature_matrices` will be removed in 0.4.0, use
+            `__call__` instead
+        """
         warnings.warn(
             "construct_feature_matrices is deprecated, use `call` instead as "
             "of nfp 0.4.0", DeprecationWarning)

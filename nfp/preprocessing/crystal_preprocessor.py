@@ -2,7 +2,10 @@ from typing import Dict
 
 import networkx as nx
 import numpy as np
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
 
 from nfp.preprocessing.preprocessor import PreprocessorMultiGraph
 from nfp.preprocessing.tokenizer import Tokenizer

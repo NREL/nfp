@@ -3,7 +3,13 @@ from typing import Dict, Optional, Callable, Hashable
 import networkx as nx
 import numpy as np
 import rdkit.Chem
-import tensorflow as tf
+
+from nfp import MissingDependencyException
+
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
 
 from nfp.preprocessing import features
 from nfp.preprocessing.preprocessor import Preprocessor
@@ -74,6 +80,8 @@ class MolPreprocessor(Preprocessor):
 
     @property
     def output_signature(self) -> Dict[str, tf.TensorSpec]:
+        if tf is None:
+            raise MissingDependencyException('Tensorflow was not found')
         return {
             'atom': tf.TensorSpec(shape=(None,), dtype=self.output_dtype),
             'bond': tf.TensorSpec(shape=(None,), dtype=self.output_dtype),
@@ -84,6 +92,8 @@ class MolPreprocessor(Preprocessor):
     @property
     def padding_values(self) -> Dict[str, tf.constant]:
         """Defaults to zero for each output"""
+        if tf is None:
+            raise MissingDependencyException('Tensorflow was not found')
         return {
             key: tf.constant(0, dtype=self.output_dtype)
             for key in self.output_signature.keys()
@@ -92,6 +102,8 @@ class MolPreprocessor(Preprocessor):
     @property
     def tfrecord_features(self) -> Dict[str, tf.io.FixedLenFeature]:
         """For loading preprocessed inputs from a tf records file"""
+        if tf is None:
+            raise MissingDependencyException('Tensorflow was not found')
         return {
             key: tf.io.FixedLenFeature(
                 [],
@@ -124,6 +136,9 @@ class BondIndexPreprocessor(MolPreprocessor):
 
     @property
     def output_signature(self) -> Dict[str, tf.TensorSpec]:
+        if tf is None:
+            raise MissingDependencyException('Tensorflow was not found')
+
         signature = super(BondIndexPreprocessor, self).output_signature
         signature['bond_indices'] = tf.TensorSpec(shape=(None,),
                                                   dtype=self.output_dtype)

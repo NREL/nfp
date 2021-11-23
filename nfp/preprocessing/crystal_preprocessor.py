@@ -81,6 +81,8 @@ class PymatgenPreprocessor(PreprocessorMultiGraph):
 
     @property
     def output_signature(self) -> Dict[str, tf.TensorSpec]:
+        if tf is None:
+            raise ImportError('Tensorflow was not found')
         return {
             'site': tf.TensorSpec(shape=(None,), dtype=self.output_dtype),
             'distance': tf.TensorSpec(shape=(None,), dtype='float32'),
@@ -90,6 +92,8 @@ class PymatgenPreprocessor(PreprocessorMultiGraph):
 
     @property
     def padding_values(self) -> Dict[str, tf.constant]:
+        if tf is None:
+            raise ImportError('Tensorflow was not found')
         return {
             'site': tf.constant(0, dtype=self.output_dtype),
             'distance': tf.constant(np.nan, dtype='float32'),
@@ -98,6 +102,8 @@ class PymatgenPreprocessor(PreprocessorMultiGraph):
 
     @property
     def tfrecord_features(self) -> Dict[str, tf.io.FixedLenFeature]:
+        if tf is None:
+            raise ImportError('Tensorflow was not found')
         return {
             key: tf.io.FixedLenFeature([], dtype=tf.string)
             for key in self.output_signature.keys()

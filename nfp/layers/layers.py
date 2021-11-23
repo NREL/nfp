@@ -1,8 +1,8 @@
 import tensorflow as tf
-from tensorflow.keras import layers
+from tensorflow.keras import layers as tf_layers
 
 
-class RBFExpansion(layers.Layer):
+class RBFExpansion(tf_layers.Layer):
     def __init__(self,
                  dimension=128,
                  init_gap=10,
@@ -99,7 +99,7 @@ def batched_segment_op(data,
     return tf.reshape(reduced_data, [batch_size, num_segments, data.shape[-1]])
 
 
-# class Slice(layers.Layer):
+# class Slice(tf_layers.Layer):
 #     def __init__(self, slice_obj, *args, **kwargs):
 #         super(Slice, self).__init__(*args, **kwargs)
 #         self.slice_obj = slice_obj
@@ -117,13 +117,13 @@ def batched_segment_op(data,
 #         return cls(**config)
 
 
-class Gather(layers.Layer):
-    def call(self, inputs, mask=None):
+class Gather(tf_layers.Layer):
+    def call(self, inputs, mask=None, **kwargs):
         reference, indices = inputs
         return tf.gather(reference, indices, batch_dims=1)
 
 
-class Reduce(layers.Layer):
+class Reduce(tf_layers.Layer):
     def __init__(self, reduction='sum', *args, **kwargs):
         super(Reduce, self).__init__(*args, **kwargs)
         self.reduction = reduction
@@ -143,7 +143,7 @@ class Reduce(layers.Layer):
         data_shape, _, target_shape = input_shape
         return [data_shape[0], target_shape[1], data_shape[-1]]
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         data, segment_ids, target, data_mask = self._parse_inputs_and_mask(
             inputs, mask)
         num_segments = tf.shape(target, out_type=segment_ids.dtype)[1]
@@ -157,7 +157,7 @@ class Reduce(layers.Layer):
         return {'reduction': self.reduction}
 
 
-class ConcatDense(layers.Layer):
+class ConcatDense(tf_layers.Layer):
     """ Layer to combine the concatenation and two dense layers. Just useful as a common operation in the graph
     layers """
 
@@ -167,11 +167,11 @@ class ConcatDense(layers.Layer):
 
     def build(self, input_shape):
         num_features = input_shape[0][-1]
-        self.concat = layers.Concatenate()
-        self.dense1 = layers.Dense(2 * num_features, activation='relu')
-        self.dense2 = layers.Dense(num_features)
+        self.concat = tf_layers.Concatenate()
+        self.dense1 = tf_layers.Dense(2 * num_features, activation='relu')
+        self.dense2 = tf_layers.Dense(num_features)
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         output = self.concat(inputs)
         output = self.dense1(output)
         output = self.dense2(output)
@@ -184,12 +184,12 @@ class ConcatDense(layers.Layer):
             return tf.math.reduce_all(tf.stack(mask), axis=0)
 
 
-class Tile(layers.Layer):
+class Tile(tf_layers.Layer):
     def __init__(self, **kwargs):
         super(Tile, self).__init__(**kwargs)
         self.supports_masking = True
 
-    def call(self, inputs, mask=None):
+    def call(self, inputs, mask=None, **kwargs):
         global_state, target = inputs
         target_shape = tf.shape(target)[1]  # number of edges or nodes
         expanded = tf.expand_dims(global_state, 1)

@@ -9,7 +9,7 @@ class RBFExpansion(tf_layers.Layer):
                  init_max_distance=7,
                  trainable=False):
         """ Layer to calculate radial basis function 'embeddings' for a continuous input variable. The width and
-        location of each bin can be optionally trained. Essentially equivalent to a 1-hot embedding for a continous
+        location of each bin can be optionally trained. Essentially equivalent to a 1-hot embedding for a continuous
         variable.
 
         Parameters
@@ -28,10 +28,9 @@ class RBFExpansion(tf_layers.Layer):
     def build(self, input_shape):
         self.centers = tf.Variable(
             name='centers',
-            initial_value=tf.range(0,
-                                   self.init_max_distance,
-                                   delta=self.init_max_distance /
-                                         self.dimension),
+            initial_value=tf.range(
+                0, self.init_max_distance,
+                delta=self.init_max_distance / self.dimension),
             trainable=self.trainable,
             dtype=tf.float32)
 
@@ -128,17 +127,6 @@ class Reduce(tf_layers.Layer):
         super(Reduce, self).__init__(*args, **kwargs)
         self.reduction = reduction
 
-    def _parse_inputs_and_mask(self, inputs, mask=None):
-        data, segment_ids, target = inputs
-
-        # Handle missing masks
-        if mask is not None:
-            data_mask = mask[0]
-        else:
-            data_mask = None
-
-        return data, segment_ids, target, data_mask
-
     def compute_output_shape(self, input_shape):
         data_shape, _, target_shape = input_shape
         return [data_shape[0], target_shape[1], data_shape[-1]]
@@ -155,6 +143,18 @@ class Reduce(tf_layers.Layer):
 
     def get_config(self):
         return {'reduction': self.reduction}
+
+    @staticmethod
+    def _parse_inputs_and_mask(inputs, mask=None):
+        data, segment_ids, target = inputs
+
+        # Handle missing masks
+        if mask is not None:
+            data_mask = mask[0]
+        else:
+            data_mask = None
+
+        return data, segment_ids, target, data_mask
 
 
 class ConcatDense(tf_layers.Layer):

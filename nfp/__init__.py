@@ -1,8 +1,11 @@
-__version__ = '0.1.4'
-
 from .layers import *
 from .models import *
 from .preprocessing import *
+
+
+class MissingDependencyException(RuntimeError):
+    pass
+
 
 custom_objects = {
     'Gather': Gather,

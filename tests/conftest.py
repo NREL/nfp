@@ -51,10 +51,10 @@ def inputs_with_padding(smiles_inputs):
 
 @pytest.fixture(scope='module')
 def structure_inputs():
-    pymatgen = pytest.importorskip('pymatgen')
+    pymatgen_core = pytest.importorskip('pymatgen.core')
     with open(os.path.join(dir_path, 'structure_data.json'), 'r') as f:
         structures_dict = json.loads(f.read())
-        structures = [pymatgen.core.Structure.from_dict(item) for item in structures_dict.values()]
+        structures = [pymatgen_core.Structure.from_dict(item) for item in structures_dict.values()]
 
     return structures
 

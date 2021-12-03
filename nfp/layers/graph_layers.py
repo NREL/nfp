@@ -1,10 +1,10 @@
 import tensorflow as tf
-from tensorflow.keras import layers
+from tensorflow.keras import layers as tf_layers
 
 import nfp
 
 
-class GraphLayer(layers.Layer):
+class GraphLayer(tf_layers.Layer):
     """ Base class for all GNN layers """
 
     def __init__(self, dropout: float = 0.0, **kwargs):
@@ -24,7 +24,7 @@ class GraphLayer(layers.Layer):
             raise RuntimeError("wrong input shape")
 
         if self.dropout > 0.:
-            self.dropout_layer = layers.Dropout(self.dropout)
+            self.dropout_layer = tf_layers.Dropout(self.dropout)
 
     def get_config(self):
         return {"dropout": self.dropout}
@@ -88,8 +88,8 @@ class NodeUpdate(GraphLayer):
         self.concat = nfp.ConcatDense()
         self.reduce = nfp.Reduce(reduction='sum')
 
-        self.dense1 = layers.Dense(2 * num_features, activation='relu')
-        self.dense2 = layers.Dense(num_features)
+        self.dense1 = tf_layers.Dense(2 * num_features, activation='relu')
+        self.dense2 = tf_layers.Dense(num_features)
 
     def call(self, inputs, mask=None, **kwargs):
         """ Inputs: [atom_state, bond_state, connectivity]
@@ -146,8 +146,8 @@ class GlobalUpdate(GraphLayer):
     def build(self, input_shape):
         super().build(input_shape)
         dense_units = self.units * self.num_heads  # N*H
-        self.query_layer = layers.Dense(self.num_heads, name='query')
-        self.value_layer = layers.Dense(dense_units, name='value')
+        self.query_layer = tf_layers.Dense(self.num_heads, name='query')
+        self.value_layer = tf_layers.Dense(dense_units, name='value')
 
     def transpose_scores(self, input_tensor):
         input_shape = tf.shape(input_tensor)

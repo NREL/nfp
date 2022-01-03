@@ -85,3 +85,29 @@ def bond_features_v3(bond, flipped=False):
     return str((bond.GetBondType(), bond.GetIsConjugated(), bond.GetStereo(),
                 get_ring_size(bond), bond.GetEndAtom().GetSymbol(), start_atom,
                 end_atom))
+
+def atom_features_xtb(atom, n, json_data):
+    xtb_props = [
+        'mulliken charges', 'cm5 charges', 's proportion', 'p proportion',
+        'd proportion', 'FOD','FOD s proportion','FOD p proportion','FOD d proportion'
+    ]
+    rdkit_props = [
+        'GetChiralTag', 'GetDegree',
+        'GetHybridization', 'GetIsAromatic', 'GetSymbol',
+        'GetTotalNumHs'
+    ]
+    atom_type = [getattr(atom, prop)() for prop in rdkit_props]
+    for prop in xtb_props:
+        print(prop)
+        atom_type += json_data[prop][n]
+    # atom_type += [json_data[prop][n] for prop in xtb_props]
+    atom_type += [get_ring_size(atom)]
+
+    return str(tuple(atom_type))
+
+def bond_features_xtb(start_atom, end_atom, wbo, mol):
+
+    start_atom_symbol = mol.GetAtomWithIdx(start_atom).GetSymbol()
+    end_atom_symbol = mol.GetAtomWithIdx(end_atom).GetSymbol()
+
+    return str((start_atom_symbol, end_atom_symbol, wbo))

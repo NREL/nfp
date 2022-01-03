@@ -52,10 +52,10 @@ class xTBPreprocessor(Preprocessor):
                           max_num_edges) -> Dict[str, np.ndarray]:
         bond_feature_matrix = np.zeros(max_num_edges, dtype=self.output_dtype)
         for n, (start_atom, end_atom, bond_dict) in enumerate(edge_data):
+
             # flipped = start_atom == bond_dict['bond'].GetEndAtomIdx()
             bond_feature_matrix[n] = self.bond_tokenizer(
                 self.bond_features_xtb(start_atom, end_atom, bond_dict['wbo'],bond_dict['mol']))
-
         return {'n_bond': max_num_edges,'bond': bond_feature_matrix}
 
     def get_node_features(self, node_data: list,
@@ -125,7 +125,6 @@ class xTBSmilesPreprocessor(xTBPreprocessor):
     def create_nx_graph(self, smiles: str, jsonfile: str, **kwargs) -> nx.DiGraph:
         mol = rdkit.Chem.MolFromSmiles(smiles)
         with open(jsonfile, 'r') as f:
-            print(jsonfile)
             self.json_data = json.load(f)
         if self.explicit_hs:
             mol = rdkit.Chem.AddHs(mol)

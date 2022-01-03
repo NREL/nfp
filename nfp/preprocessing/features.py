@@ -97,10 +97,7 @@ def atom_features_xtb(atom, n, json_data):
         'GetTotalNumHs'
     ]
     atom_type = [getattr(atom, prop)() for prop in rdkit_props]
-    for prop in xtb_props:
-        print(prop)
-        atom_type += json_data[prop][n]
-    # atom_type += [json_data[prop][n] for prop in xtb_props]
+    atom_type += [json_data[prop][n] for prop in xtb_props]
     atom_type += [get_ring_size(atom)]
 
     return str(tuple(atom_type))

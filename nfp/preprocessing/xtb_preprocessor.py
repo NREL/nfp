@@ -1,9 +1,9 @@
-from typing import Dict, Optional, Callable, Hashable
+import json
+from typing import Callable, Dict, Hashable, Optional
 
 import networkx as nx
 import numpy as np
 import rdkit.Chem
-import json
 
 try:
     import tensorflow as tf
@@ -12,7 +12,6 @@ except ImportError:
 
 from nfp.preprocessing import features
 from nfp.preprocessing.mol_preprocessor import MolPreprocessor, SmilesPreprocessor
-from nfp.preprocessing.tokenizer import Tokenizer
 
 
 class xTBPreprocessor(MolPreprocessor):
@@ -57,39 +56,32 @@ class xTBPreprocessor(MolPreprocessor):
 
         # add hydrogens as wbo contains hydrogens and add xtb features to the graphs
         g = nx.Graph(mol=mol)
-        g.add_nodes_from(
-            (
-                (
-                    atom.GetIdx(),
-                    {
-                        "atom": atom,
-                        "atomxtbfeatures": [
-                            json_data[prop][atom.GetIdx()]
-                            for prop in self.xtb_atom_features
-                        ],
-                    },
-                )
-                for atom in mol.GetAtoms()
-            )
-        )
+        for atom in mol.GetAtoms():
+            atom_data = {
+                "atom": atom,
+                "atom_xtb": [
+                    json_data[prop][atom.GetIdx()] for prop in self.xtb_atom_features
+                ],
+            }
+            g.add_node(atom.GetIdx(), **atom_data)
 
         # add edges based on wilberg bond orders.
         wbo = np.array(json_data["Wiberg matrix"])
-        g.add_edges_from(
-            (
-                (
-                    i,
-                    j,
-                    {
-                        "wbo": wbo[i][j],
-                        "bondatoms": (mol.GetAtomWithIdx(i), mol.GetAtomWithIdx(j)),
-                    },
-                )
-                for i in range(len(wbo))
-                for j in range(len(wbo))
-                if wbo[i][j] > self.cutoff
-            )
+        edges_to_add = (
+            (i, j)
+            for i in range(len(wbo))
+            for j in range(len(wbo))
+            if wbo[i][j] > self.cutoff
         )
+
+        for i, j in edges_to_add:
+
+            edge_data = {
+                "wbo": wbo[i][j],
+                "bondatoms": (mol.GetAtomWithIdx(i), mol.GetAtomWithIdx(j)),
+            }
+
+            g.add_edge(i, j, **edge_data)
 
         return nx.DiGraph(g)
 
@@ -98,13 +90,16 @@ class xTBPreprocessor(MolPreprocessor):
     ) -> Dict[str, np.ndarray]:
 
         bond_feature_matrix = np.zeros(max_num_edges, dtype=self.output_dtype)
-        bond_feature_matrix_xtb = np.zeros(max_num_edges, dtype="float32")
+        bond_feature_matrix_xtb = np.zeros(
+            (max_num_edges, len(self.xtb_bond_features)), dtype="float32"
+        )
 
         for n, (start_atom, end_atom, bond_dict) in enumerate(edge_data):
             bond_feature_matrix[n] = self.bond_tokenizer(
                 self.bond_features(start_atom, end_atom, bond_dict["bondatoms"])
             )
             bond_feature_matrix_xtb[n] = bond_dict["wbo"]
+
         return {"bond": bond_feature_matrix, "bond_xtb": bond_feature_matrix_xtb}
 
     def get_node_features(
@@ -115,7 +110,7 @@ class xTBPreprocessor(MolPreprocessor):
             [max_num_nodes, len(self.xtb_atom_features)], dtype="float32"
         )
         for n, atom_dict in node_data:
-            node_features["atom_xtb"][n] = atom_dict["atomxtbfeatures"]
+            node_features["atom_xtb"][n] = atom_dict["atom_xtb"]
         return node_features
 
     @property

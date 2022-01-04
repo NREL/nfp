@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Callable, Hashable
+from typing import Callable, Dict, Hashable, Optional
 
 import networkx as nx
 import numpy as np
@@ -119,11 +119,11 @@ class SmilesPreprocessor(MolPreprocessor):
         super(SmilesPreprocessor, self).__init__(*args, **kwargs)
         self.explicit_hs = explicit_hs
 
-    def create_nx_graph(self, smiles: str, **kwargs) -> nx.DiGraph:
+    def create_nx_graph(self, smiles: str, *args, **kwargs) -> nx.DiGraph:
         mol = rdkit.Chem.MolFromSmiles(smiles)
         if self.explicit_hs:
             mol = rdkit.Chem.AddHs(mol)
-        return super(SmilesPreprocessor, self).create_nx_graph(mol, **kwargs)
+        return super(SmilesPreprocessor, self).create_nx_graph(mol, *args, **kwargs)
 
 
 class BondIndexPreprocessor(MolPreprocessor):

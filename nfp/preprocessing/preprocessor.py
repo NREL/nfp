@@ -132,7 +132,6 @@ class Preprocessor(ABC):
 
     def __call__(self,
                  structure: Any,
-                 jsonfile: Optional[str] = None,
                  train: bool = False,
                  max_num_nodes: Optional[int] = None,
                  max_num_edges: Optional[int] = None,
@@ -160,10 +159,8 @@ class Preprocessor(ABC):
         Dict[str, np.ndarray]
             A dictionary of key, array pairs as a single sample.
         """
-        if jsonfile == None:
-            nx_graph = self.create_nx_graph(structure, **kwargs)
-        else:
-            nx_graph = self.create_nx_graph(structure, jsonfile, **kwargs)
+
+        nx_graph = self.create_nx_graph(structure, **kwargs)
 
         max_num_edges = len(nx_graph.edges) if max_num_edges is None else max_num_edges
         assert len(nx_graph.edges) <= max_num_edges, "max_num_edges too small for given input"

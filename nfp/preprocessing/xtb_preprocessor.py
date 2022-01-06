@@ -49,9 +49,13 @@ class xTBPreprocessor(MolPreprocessor):
                 "Dispersion coefficient C6",
                 "Polarizability alpha",
             ]
+		else:
+			self.xtb_atom_features = xtb_atom_features
 
         if xtb_bond_features is None:
             self.xtb_bond_features = ["Wiberg matrix", "bond_dist"]
+		else:
+			self.xtb_bond_features = xtb_bond_features
 
         if xtb_mol_features is None:
             self.xtb_mol_features = [
@@ -60,6 +64,8 @@ class xTBPreprocessor(MolPreprocessor):
                 "HOMO",
                 "LUMO",
             ]
+		else:
+			self.xtb_mol_features = xtb_mol_features
 
     def create_nx_graph(
         self, mol: rdkit.Chem.Mol, jsonfile: str, **kwargs

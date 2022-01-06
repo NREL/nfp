@@ -1,5 +1,5 @@
 import json
-from typing import Callable, Dict, Hashable, Optional
+from typing import Callable, Dict, Hashable, Optional, List
 
 import networkx as nx
 import numpy as np
@@ -19,8 +19,9 @@ class xTBPreprocessor(MolPreprocessor):
         self,
         *args,
         explicit_hs: bool = True,
-        xtb_atom_features: Optional[Callable[[rdkit.Chem.Atom], Hashable]] = None,
-        xtb_bond_features: Optional[Callable[[rdkit.Chem.Bond], Hashable]] = None,
+        xtb_atom_features: Optional[List[str]] = None,
+        xtb_bond_features: Optional[List[str]] = None,
+        xtb_mol_features: Optional[List[str]] = None,
         cutoff: float = 0.3,
         **kwargs
     ):
@@ -35,6 +36,9 @@ class xTBPreprocessor(MolPreprocessor):
             self.xtb_atom_features = [
                 "mulliken charges",
                 "cm5 charges",
+                "FUKUI+",
+                "FUKUI-",
+                "FUKUIrad",
                 "s proportion",
                 "p proportion",
                 "d proportion",
@@ -42,10 +46,20 @@ class xTBPreprocessor(MolPreprocessor):
                 "FOD s proportion",
                 "FOD p proportion",
                 "FOD d proportion",
+                "Dispersion coefficient C6",
+                "Polarizability alpha",
             ]
 
         if xtb_bond_features is None:
-            self.xtb_bond_features = ["Wiberg bond order"]
+            self.xtb_bond_features = ["Wiberg matrix", "bond_dist"]
+
+        if xtb_mol_features is None:
+            self.xtb_mol_features = [
+                "total energy",
+                "electronic energy",
+                "HOMO",
+                "LUMO",
+            ]
 
     def create_nx_graph(
         self, mol: rdkit.Chem.Mol, jsonfile: str, **kwargs
@@ -55,7 +69,9 @@ class xTBPreprocessor(MolPreprocessor):
             json_data = json.load(f)
 
         # add hydrogens as wbo contains hydrogens and add xtb features to the graphs
-        g = nx.Graph(mol=mol)
+        mol_data = {"mol_xtb": [json_data[prop] for prop in self.xtb_mol_features]}
+
+        g = nx.Graph(mol=mol, **mol_data)
         for atom in mol.GetAtoms():
             atom_data = {
                 "atom": atom,
@@ -77,8 +93,8 @@ class xTBPreprocessor(MolPreprocessor):
         for i, j in edges_to_add:
 
             edge_data = {
-                "wbo": wbo[i][j],
                 "bondatoms": (mol.GetAtomWithIdx(i), mol.GetAtomWithIdx(j)),
+                "bond_xtb": [json_data[prop][i][j] for prop in self.xtb_bond_features],
             }
 
             g.add_edge(i, j, **edge_data)
@@ -98,7 +114,7 @@ class xTBPreprocessor(MolPreprocessor):
             bond_feature_matrix[n] = self.bond_tokenizer(
                 self.bond_features(start_atom, end_atom, bond_dict["bondatoms"])
             )
-            bond_feature_matrix_xtb[n] = bond_dict["wbo"]
+            bond_feature_matrix_xtb[n] = bond_dict["bond_xtb"]
 
         return {"bond": bond_feature_matrix, "bond_xtb": bond_feature_matrix_xtb}
 
@@ -113,6 +129,9 @@ class xTBPreprocessor(MolPreprocessor):
             node_features["atom_xtb"][n] = atom_dict["atom_xtb"]
         return node_features
 
+    def get_graph_features(self, graph_data: dict) -> Dict[str, np.ndarray]:
+        return {"mol_xtb": graph_data["mol_xtb"]}
+
     @property
     def output_signature(self) -> Dict[str, tf.TensorSpec]:
         output_signature = super().output_signature
@@ -122,6 +141,7 @@ class xTBPreprocessor(MolPreprocessor):
         output_signature["bond_xtb"] = tf.TensorSpec(
             shape=(None, None), dtype="float32"
         )
+        output_signature["mol_xtb"] = tf.TensorSpec(shape=(None,), dtype="float32")
         return output_signature
 
     @property
@@ -129,6 +149,7 @@ class xTBPreprocessor(MolPreprocessor):
         padding_values = super().padding_values
         padding_values["atom_xtb"] = tf.constant(np.nan, dtype="float32")
         padding_values["bond_xtb"] = tf.constant(np.nan, dtype="float32")
+        padding_values["mol_xtb"] = tf.constant(np.nan, dtype="float32")
         return padding_values
 
     @property
@@ -144,6 +165,12 @@ class xTBPreprocessor(MolPreprocessor):
             [],
             dtype=self.output_dtype
             if len(self.output_signature["bond_xtb"].shape) == 0
+            else tf.string,
+        )
+        tfrecord_features["mol_xtb"] = tf.io.FixedLenFeature(
+            [],
+            dtype=self.output_dtype
+            if len(self.output_signature["mol_xtb"].shape) == 0
             else tf.string,
         )
         return tfrecord_features

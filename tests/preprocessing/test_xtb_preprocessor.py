@@ -1,6 +1,7 @@
 import os
 
 import pytest
+import tensorflow as tf
 from nfp.preprocessing.xtb_preprocessor import xTBSmilesPreprocessor
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -43,7 +44,7 @@ def test_xtb_smiles_preprocessor(get_2d_smiles_json):
             len(input_["bond"]),
             len(preprocessor.xtb_bond_features),
         )
-        assert len(input_["mol_xtb"]) == len(preprocessor.xtb_mol_features)
+        assert input_["mol_xtb"].shape == (len(preprocessor.xtb_mol_features),)
 
     test_inputs = [
         preprocessor(smiles, jsonfile, train=False)
@@ -60,3 +61,23 @@ def test_xtb_smiles_preprocessor(get_2d_smiles_json):
             len(preprocessor.xtb_bond_features),
         )
         assert len(input_["mol_xtb"]) == len(preprocessor.xtb_mol_features)
+
+
+def test_xtb_batching(get_2d_smiles_json):
+
+    train, train_json, test, test_json = get_2d_smiles_json
+
+    preprocessor = xTBSmilesPreprocessor(explicit_hs=True)
+
+    inputs = (
+        preprocessor(smiles, jsonfile, train=True)
+        for smiles, jsonfile in zip(train, train_json)
+    )
+
+    dataset = tf.data.Dataset.from_generator(
+        lambda: inputs,
+        output_signature=preprocessor.output_signature,
+    ).padded_batch(batch_size=3, padding_values=preprocessor.padding_values)
+
+    batched_inputs = next(dataset.as_numpy_iterator())
+    assert "atom_xtb" in batched_inputs

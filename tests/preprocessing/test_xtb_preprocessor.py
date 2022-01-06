@@ -43,10 +43,7 @@ def test_xtb_smiles_preprocessor(get_2d_smiles_json):
             len(input_["bond"]),
             len(preprocessor.xtb_bond_features),
         )
-        assert input_["mol_xtb"].shape == (
-            1,
-            len(preprocessor.xtb_mol_features),
-        )
+        assert len(input_["mol_xtb"]) == len(preprocessor.xtb_mol_features)
 
     test_inputs = [
         preprocessor(smiles, jsonfile, train=False)
@@ -62,7 +59,4 @@ def test_xtb_smiles_preprocessor(get_2d_smiles_json):
             len(input_["bond"]),
             len(preprocessor.xtb_bond_features),
         )
-        assert input_["mol_xtb"].shape == (
-            1,
-            len(preprocessor.xtb_mol_features),
-        )
+        assert len(input_["mol_xtb"]) == len(preprocessor.xtb_mol_features)

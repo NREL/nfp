@@ -136,7 +136,7 @@ class xTBPreprocessor(MolPreprocessor):
         return node_features
 
     def get_graph_features(self, graph_data: dict) -> Dict[str, np.ndarray]:
-        return {"mol_xtb": graph_data["mol_xtb"]}
+        return {"mol_xtb": np.asarray(graph_data["mol_xtb"])}
 
     @property
     def output_signature(self) -> Dict[str, tf.TensorSpec]:

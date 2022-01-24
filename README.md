@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/NREL/nfp.svg?branch=master)](https://travis-ci.org/NREL/nfp)
 [![PyPI version](https://badge.fury.io/py/nfp.svg)](https://badge.fury.io/py/nfp)
+[![DOI](https://zenodo.org/badge/158466097.svg)](https://zenodo.org/badge/latestdoi/158466097)
 
 # Neural fingerprint (nfp)
 

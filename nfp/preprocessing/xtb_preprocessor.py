@@ -185,5 +185,8 @@ class xTBPreprocessor(MolPreprocessor):
 class xTBSmilesPreprocessor(SmilesPreprocessor, xTBPreprocessor):
     pass
 
-class xTBSmilesBondIndexPreprocessor(SmilesPreprocessor, BondIndexPreprocessor, xTBPreprocessor):
+
+class xTBSmilesBondIndexPreprocessor(
+    SmilesPreprocessor, BondIndexPreprocessor, xTBPreprocessor
+):
     pass

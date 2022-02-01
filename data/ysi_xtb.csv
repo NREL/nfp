@@ -1,0 +1,235 @@
+Species,CAS,Ref,Type,YSI,YSI_err,SMILES,xtbjson
+"1-ethynyl-2,5-dimethylbenzene",74331-70-7,1.0,aromatic,512.7,19.6,C#Cc1cc(C)ccc1C,519175_3342b2_bd_coord.json
+2-methylindene,2177-47-1,1.0,aromatic,500.1,19.1,CC1=Cc2ccccc2C1,437628_fd0a51_bd_coord.json
+azulene,275-51-4,2.0,aromatic,492.3,19.0,c1ccc2cccc-2cc1,435907_1c36e8_bd_coord.json
+1-ethynyl-2-methylbenzene,766-47-2,1.0,aromatic,485.0,18.5,C#Cc1ccccc1C,22307_0_bd_coord.json
+"1-ethenyl-2,5-dimethylbenzene",2039-89-6,1.0,aromatic,469.3,17.8,C=Cc1cc(C)ccc1C,509114_ad5711_bd_coord.json
+indene,95-13-6,1.0,aromatic,467.7,17.8,C1=Cc2ccccc2C1,2739_0_bd_coord.json
+"1,2-dihydronaphthalene",447-53-0,1.0,aromatic,466.1,17.8,C1=Cc2ccccc2CC1,436081_4d1446_bd_coord.json
+naphthalene,91-20-3,1.0,aromatic,466.1,8.4,c1ccc2ccccc2c1,509122_3d4389_bd_coord.json
+(2-propynyl)-benzene,10147-11-2,1.0,aromatic,443.7,17.1,C#CCc1ccccc1,83340_0_bd_coord.json
+1-ethynyl-4-ethylbenzene,40307-11-7,1.0,aromatic,442.6,17.1,C#Cc1ccc(CC)cc1,445913_b31cd3_bd_coord.json
+(2-methyl-1-propenyl)-benzene,768-49-0,1.0,aromatic,436.9,16.6,CC(C)=Cc1ccccc1,436609_6062ff_bd_coord.json
+(1-propynyl)-benzene,673-32-5,1.0,aromatic,427.5,16.5,CC#Cc1ccccc1,507886_d77d00_bd_coord.json
+1-ethenyl-2-methylbenzene,611-15-4,1.0,aromatic,408.1,15.9,C=Cc1ccccc1C,17240_0_bd_coord.json
+"1,2,3,4-tetramethylbenzene",488-23-3,1.0,aromatic,393.0,15.3,Cc1ccc(C)c(C)c1C,12952_0_bd_coord.json
+"1,2,4,5-tetramethylbenzene",95-93-2,2.0,aromatic,393.0,15.3,Cc1cc(C)c(C)cc1C,2645_0_bd_coord.json
+1-ethynyl-3-methylbenzene,766-82-5,1.0,aromatic,384.6,14.7,C#Cc1cccc(C)c1,22120_0_bd_coord.json
+"1,2-diethylbenzene",135-01-3,1.0,aromatic,376.3,14.7,CCc1ccccc1CC,6949_0_bd_coord.json
+1-ethynyl-4-methylbenzene,766-97-2,1.0,aromatic,374.7,14.7,C#Cc1ccc(C)cc1,516874_12f22e_bd_coord.json
+(1-propenyl)-benzene,637-50-3,1.0,aromatic,352.2,13.5,C/C=C/c1ccccc1,436414_8f7071_bd_coord.json
+cyclopropylbenzene,873-49-4,1.0,aromatic,343.9,13.5,c1ccc(C2CC2)cc1,24482_0_bd_coord.json
+tetralin,119-64-2,1.0,aromatic,336.0,13.4,c1ccc2c(c1)CCCC2,435498_a67883_bd_coord.json
+1-ethenyl-3-methylbenzene,100-80-1,1.0,aromatic,322.4,12.8,C=Cc1cccc(C)c1,435556_a65113_bd_coord.json
+"1,3-diethylbenzene",141-93-5,1.0,aromatic,320.9,12.8,CCc1cccc(CC)c1,7241_0_bd_coord.json
+(2-propenyl)-benzene,300-57-2,1.0,aromatic,310.9,12.3,C=CCc1ccccc1,507901_578e4a_bd_coord.json
+"1,2,4-trimethylbenzene",95-63-6,1.0,aromatic,308.3,12.2,Cc1ccc(C)c(C)c1,509215_fbb763_bd_coord.json
+(3-butynyl)-benzene,16520-62-0,1.0,aromatic,298.9,11.7,C#CCCc1ccccc1,517734_a2fee2_bd_coord.json
+"(1,1-dimethylethyl)-benzene",98-06-6,1.0,aromatic,291.1,11.6,CC(C)(C)c1ccccc1,509245_ccc722_bd_coord.json
+1-ethyl-3-methylbenzene,620-14-4,1.0,aromatic,278.0,11.1,CCc1cccc(C)c1,17913_0_bd_coord.json
+(3-butenyl)-benzene,768-56-9,1.0,aromatic,275.9,11.1,C=CCCc1ccccc1,436600_1e570e_bd_coord.json
+"1,4-diethylbenzene",105-05-5,1.0,aromatic,270.7,11.0,CCc1ccc(CC)cc1,4436_0_bd_coord.json
+1-ethyl-2-methylbenzene,611-14-3,1.0,aromatic,267.0,11.0,CCc1ccccc1C,509282_69ff97_bd_coord.json
+(2-methylpropyl)-benzene,538-93-2,1.0,aromatic,257.6,10.5,CC(C)Cc1ccccc1,509290_4d0288_bd_coord.json
+1-ethyl-4-methylbenzene,622-96-8,1.0,aromatic,257.1,10.5,CCc1ccc(C)cc1,509295_b8887e_bd_coord.json
+n-butylbenzene,104-51-8,1.0,aromatic,245.1,9.9,CCCCc1ccccc1,3966_0_bd_coord.json
+ethylbenzene,100-41-4,1.0,aromatic,223.7,9.3,CCc1ccccc1,3607_0_bd_coord.json
+phenylacetylene,536-74-3,1.0,aromatic,216.3,9.3,C#Cc1ccccc1,516760_7866b0_bd_coord.json
+"1,2-dimethylbenzene",95-47-6,1.0,aromatic,204.8,8.8,Cc1ccccc1C,2663_0_bd_coord.json
+isopropylbenzene,98-82-8,1.0,aromatic,187.6,8.2,CC(C)c1ccccc1,509355_6ae0b0_bd_coord.json
+"1-methyl-1,4-cyclohexadiene",4313-57-9,1.0,aliphatic,175.6,7.7,CC1=CCC=CC1,12560_0_bd_coord.json
+styrene,100-42-5,1.0,aromatic,174.0,7.7,C=Cc1ccccc1,509356_d2560a_bd_coord.json
+methoxybenzene,100-66-3,1.0,aromatic,107.1,5.8,COc1ccccc1,508480_3cbc9b_bd_coord.json
+cis + trans decahydronaphthalene,91-17-8,2.0,aromatic,105.5,5.8,C1CCC2CCCCC2C1,2194_0_bd_coord.json
+"1,4-cyclohexadiene",628-41-1,1.0,aliphatic,101.4,5.8,C1=CCC=CC1,510632_cfd2f3_bd_coord.json
+benzene,71-43-2,1.0,aromatic,100.3,5.8,c1ccccc1,509365_083657_bd_coord.json
+"1,3-cyclohexadiene",592-57-4,1.0,aliphatic,98.8,5.8,C1=CCCC=C1,16666_0_bd_coord.json
+1-methylcyclopentene,693-89-0,3.0,cyclic alkenes,96.5,2.8,CC1=CCCC1,20492_0_bd_coord.json
+"2,4,4-trimethyl-2-pentene",107-40-4,3.0,alkenes,89.3,2.6,CC(C)=CC(C)(C)C,5011_0_bd_coord.json
+"2,3,4-trimethyl-2-pentene",565-77-5,3.0,alkenes,87.0,2.5,CC(C)=C(C)C(C)C,15694_0_bd_coord.json
+butylcyclohexane,1678-93-9,3.0,cyclic alkanes,76.8,2.2,CCCCC1CCCCC1,34777_0_bd_coord.json
+1-decene,872-05-9,3.0,alkenes,74.8,2.2,C=CCCCCCCCC,5800_0_bd_coord.json
+isopropylcyclohexane,696-29-7,3.0,cyclic alkanes,74.7,2.2,CC(C)C1CCCCC1,3160_0_bd_coord.json
+1-octyne,629-05-0,3.0,alkynes/alkadienes,74.1,2.2,C#CCCCCCC,516826_340bac_bd_coord.json
+cyclopentene,142-29-0,3.0,cyclic alkenes,70.2,2.1,C1=CCCC1,510166_c8f1dc_bd_coord.json
+propylcyclohexane,1678-92-8,3.0,cyclic alkanes,69.2,2.1,CCCC1CCCCC1,34801_0_bd_coord.json
+"2,4,4-trimethyl-1-pentene",107-39-1,3.0,alkenes,68.5,2.1,C=C(C)CC(C)(C)C,4921_0_bd_coord.json
+"1,1-dimethylcyclohexane",590-66-9,3.0,cyclic alkanes,67.9,2.1,CC1(C)CCCCC1,16326_0_bd_coord.json
+"2-methyl-1,5-hexadiene",4049-81-4,3.0,alkynes/alkadienes,67.7,2.1,C=CCCC(=C)C,53344_0_bd_coord.json
+"2,2,4,4-tetramethyl-3-pentanone",815-24-7,3.0,saturated alkanone,65.8,2.0,CC(C)(C)C(=O)C(C)(C)C,22895_0_bd_coord.json
+"cis 1,2-dimethylcyclohexane",2207-01-4,3.0,cyclic alkanes,65.2,2.0,C[C@H]1CCCC[C@H]1C,15826_0_bd_coord.json
+2-methyl-2-heptene,627-97-4,3.0,alkenes,64.5,2.0,CCCCC=C(C)C,18921_0_bd_coord.json
+"2,3-dimethyl-2-butene",563-79-1,3.0,alkenes,62.4,2.0,CC(C)=C(C)C,15548_0_bd_coord.json
+methyl cyclopentyl ether,5614-37-9,3.0,saturated ethers,62.3,2.0,COC1CCCC1,38145_0_bd_coord.json
+"2,2,4-trimethylpentane",540-84-1,3.0,linear alkanes,61.7,2.0,CC(C)CC(C)(C)C,14930_0_bd_coord.json
+"4,4-dimethyl-1-pentene",762-62-9,3.0,alkenes,61.4,2.0,C=CCC(C)(C)C,21727_0_bd_coord.json
+"2,3,4-trimethylpentane",565-75-3,3.0,linear alkanes,60.9,2.0,CC(C)C(C)C(C)C,15667_0_bd_coord.json
+ethylcyclohexane,1678-91-7,3.0,cyclic alkanes,60.7,2.0,CCC1CCCCC1,34800_0_bd_coord.json
+3-ethyl-2-pentene,816-79-5,3.0,alkenes,59.8,2.0,CC=C(CC)CC,436620_9743f0_bd_coord.json
+trans 4-octene,14850-23-8,3.0,alkenes,59.8,2.0,CCC/C=C/CCC,16625_0_bd_coord.json
+trans 3-octene,14919-01-8,3.0,alkenes,58.8,2.0,CC/C=C/CCCC,16582_0_bd_coord.json
+ethylcyclopentane,1640-89-7,3.0,cyclic alkanes,58.6,2.0,CCC1CCCC1,509449_ec0877_bd_coord.json
+cyclooctane,292-64-8,3.0,cyclic alkanes,57.7,2.0,C1CCCCCCC1,510259_4d2078_bd_coord.json
+n-decane,124-18-5,3.0,linear alkanes,57.2,2.0,CCCCCCCCCC,6799_0_bd_coord.json
+trans 2-octene,13389-42-9,3.0,alkenes,56.7,2.0,C/C=C/CCCCC,5895_0_bd_coord.json
+"2,5-dimethylhexane",592-13-2,3.0,linear alkanes,56.1,2.0,CC(C)CCC(C)C,16548_0_bd_coord.json
+1-octene,111-66-0,3.0,alkenes,56.0,2.0,C=CCCCCCC,6123_0_bd_coord.json
+"2,6-dimethyl-4-heptanone",108-83-8,3.0,saturated alkanone,55.8,2.0,CC(C)CC(=O)CC(C)C,5151_0_bd_coord.json
+"2,2,3-trimethylbutane",464-06-2,3.0,linear alkanes,55.3,2.0,CC(C)C(C)(C)C,508003_846a96_bd_coord.json
+2-pentyne,627-21-4,3.0,alkynes/alkadienes,54.7,2.0,CC#CCC,18995_0_bd_coord.json
+cis 4-methyl-2-pentene,691-38-3,3.0,alkenes,54.1,2.0,C/C=C\C(C)C,508010_2af6b2_bd_coord.json
+3-methyl-2-pentene,922-61-2,3.0,alkenes,53.7,2.0,C/C=C(\C)CC,508020_186d6d_bd_coord.json
+2-methyl-2-pentene,625-27-4,3.0,alkenes,53.6,2.0,CCC=C(C)C,509489_e96a4f_bd_coord.json
+methylcyclohexane,108-87-2,3.0,cyclic alkanes,53.6,2.0,CC1CCCCC1,5193_0_bd_coord.json
+trans 3-heptene,14686-14-7,3.0,alkenes,53.5,2.0,CC/C=C/CCC,16605_0_bd_coord.json
+"3,3-dimethyl-1-butene",558-37-2,3.0,alkenes,53.1,2.0,C=CC(C)(C)C,15444_0_bd_coord.json
+"2,2-dimethylhexane",590-73-8,3.0,linear alkanes,52.8,2.0,CCCCC(C)(C)C,16305_0_bd_coord.json
+cis 2-heptene,6443-92-1,3.0,alkenes,50.8,2.0,C/C=C\CCCC,508031_6f74a8_bd_coord.json
+2-propyl-1-pentanol,58175-57-8,3.0,saturated alcohols,50.5,2.0,CCCC(CO)CCC,181010_0_bd_coord.json
+methylcyclopentane,96-37-7,3.0,cyclic alkanes,50.3,2.0,CC1CCCC1,2763_0_bd_coord.json
+cycloheptane,291-64-5,3.0,cyclic alkanes,50.0,2.0,C1CCCCCC1,510274_74e3ef_bd_coord.json
+"2,4-dimethylpentane",108-08-7,3.0,linear alkanes,49.6,2.0,CC(C)CC(C)C,5265_0_bd_coord.json
+2-methylheptane,592-27-8,3.0,linear alkanes,49.4,2.0,CCCCCC(C)C,6700_0_bd_coord.json
+2-methyl-1-hexene,6094-02-6,3.0,alkenes,49.1,2.0,C=C(C)CCCC,21813_0_bd_coord.json
+1-heptene,592-76-7,3.0,alkenes,48.4,2.0,C=CCCCCC,508067_b0a965_bd_coord.json
+4-methylheptane,589-53-7,3.0,linear alkanes,48.1,2.0,CCCC(C)CCC,16277_0_bd_coord.json
+"3,3-dimethylpentane",562-49-2,3.0,linear alkanes,47.7,2.0,CCC(C)(C)CC,15502_0_bd_coord.json
+"2,2-dimethylpentane",590-35-2,3.0,linear alkanes,47.4,2.0,CCCC(C)(C)C,16322_0_bd_coord.json
+trans 3-hexene,13269-52-8,3.0,alkenes,47.2,2.0,CC/C=C/CC,16673_0_bd_coord.json
+trans 2-hexene,4050-45-7,3.0,alkenes,45.8,2.0,C/C=C/CCC,16535_0_bd_coord.json
+2-ethyl-1-butene,760-21-4,3.0,alkenes,45.6,2.0,C=C(CC)CC,21586_0_bd_coord.json
+methyl-3-hexenoate,2396-78-3,4.0,unsaturated esters,45.3,2.0,CC/C=C/CC(=O)OC,40275_0_bd_coord.json
+cis 2-hexene,7688-21-3,3.0,alkenes,44.7,2.0,C/C=C\CCC,509612_94d550_bd_coord.json
+"2,3-dimethylbutane",79-29-8,3.0,linear alkanes,44.0,2.0,CC(C)C(C)C,1732_0_bd_coord.json
+nonanal,124-19-6,3.0,saturated aldehyde,43.7,2.0,CCCCCCCCC=O,6770_0_bd_coord.json
+isopentyl acetate,123-92-2,3.0,saturated esters,43.6,2.0,CC(=O)OCCC(C)C,6574_0_bd_coord.json
+2-methyl-2-butene,513-35-9,3.0,alkenes,43.5,2.0,CC=C(C)C,14097_0_bd_coord.json
+butyl propionate,590-01-2,3.0,saturated esters,43.3,2.0,CCCCOC(=O)CC,16364_0_bd_coord.json
+"4,4-dimethyl-2-pentanone",590-50-1,3.0,saturated alkanone,42.7,2.0,CC(=O)CC(C)(C)C,16359_0_bd_coord.json
+cyclohexane,110-82-7,3.0,cyclic alkanes,42.7,2.0,C1CCCCC1,510660_a7116d_bd_coord.json
+"2,4-dimethyl-3-pentanone",565-80-0,3.0,saturated alkanone,42.6,2.0,CC(C)C(=O)C(C)C,15692_0_bd_coord.json
+n-octane,111-65-9,3.0,linear alkanes,42.6,2.0,CCCCCCCC,6131_0_bd_coord.json
+2-methylhexane,591-76-4,3.0,linear alkanes,42.4,2.0,CCCCC(C)C,16405_0_bd_coord.json
+cyclohexanol,108-93-0,3.0,saturated alcohols,42.3,2.0,OC1CCCCC1,4204_0_bd_coord.json
+"2,4-dimethyl-3-pentanol",600-36-2,3.0,saturated alcohols,41.9,2.1,CC(C)C(O)C(C)C,16908_0_bd_coord.json
+2-methyl-2-hexanol,625-23-0,3.0,saturated alcohols,41.8,2.1,CCCCC(C)(C)O,18686_0_bd_coord.json
+5-nonanone,502-56-7,3.0,saturated alkanone,41.8,2.1,CCCCC(=O)CCCC,13638_0_bd_coord.json
+2-ethyl-1-butanol,97-95-0,3.0,saturated alcohols,41.7,2.1,CCC(CC)CO,2929_0_bd_coord.json
+ethyl-4-pentenoate,1968-40-7,4.0,unsaturated esters,41.2,2.1,C=CCCC(=O)OCC,37200_0_bd_coord.json
+1-octanol,111-87-5,3.0,saturated alcohols,41.1,2.1,CCCCCCCCO,508200_f2b6b1_bd_coord.json
+isobutyl propionate,540-42-1,3.0,saturated esters,41.1,2.1,CCC(=O)OCC(C)C,508201_81286f_bd_coord.json
+"3,3-dimethyl-1-butanol",624-95-3,3.0,saturated alcohols,40.9,2.1,CC(C)(C)CCO,508202_78e26e_bd_coord.json
+"2,3-dimethyl-2-butanol",594-60-5,3.0,saturated alcohols,40.6,2.1,CC(C)C(C)(C)O,16689_0_bd_coord.json
+"3,3-dimethyl-2-butanone",75-97-8,3.0,saturated alkanone,40.6,2.1,CC(=O)C(C)(C)C,1397_0_bd_coord.json
+3-ethyl-3-pentanol,597-49-9,3.0,saturated alcohols,40.5,2.1,CCC(O)(CC)CC,16770_0_bd_coord.json
+tert-butyl propionate,20487-40-5,3.0,saturated esters,40.5,2.1,CCC(=O)OC(C)(C)C,110758_0_bd_coord.json
+cis 2-pentene,627-20-3,3.0,alkenes,39.8,2.1,C/C=C\CC,509706_bb2796_bd_coord.json
+ethyl-3-methyl-2-butenoate,638-10-8,4.0,unsaturated esters,39.5,2.1,CCOC(=O)C=C(C)C,19599_0_bd_coord.json
+methyl-5-hexenoate,2396-80-7,4.0,unsaturated esters,39.2,2.1,C=CCCCC(=O)OC,40291_0_bd_coord.json
+methyl-3-pentenoate,818-58-6,4.0,unsaturated esters,38.8,2.1,C/C=C/CC(=O)OC,23260_0_bd_coord.json
+dibutyl ether,142-96-1,3.0,saturated ethers,38.7,2.1,CCCCOCCCC,7284_0_bd_coord.json
+diisopropyl ether,108-20-3,3.0,saturated ethers,38.7,2.1,CC(C)OC(C)C,5212_0_bd_coord.json
+4-heptanol,589-55-9,3.0,saturated alcohols,38.5,2.1,CCCC(O)CCC,16132_0_bd_coord.json
+"3,3-dimethylbutanal",2987-16-8,3.0,saturated aldehyde,38.4,2.1,CC(C)(C)CC=O,45102_0_bd_coord.json
+3-methylpentane,96-14-0,3.0,linear alkanes,38.2,2.1,CCC(C)CC,2861_0_bd_coord.json
+methyl tert-amyl ether,994-05-8,3.0,saturated ethers,38.1,2.1,CCC(C)(C)OC,26827_0_bd_coord.json
+methyl-2-methyl-2-butenoate,6622-76-0,4.0,unsaturated esters,38.0,2.1,C/C=C(/C)C(=O)OC,439760_3a05a4_bd_coord.json
+tert-butyl ethyl ether,637-92-3,3.0,saturated ethers,37.9,2.1,CCOC(C)(C)C,19570_0_bd_coord.json
+octanal,124-13-0,3.0,saturated aldehyde,37.5,2.1,CCCCCCCC=O,6805_0_bd_coord.json
+propyl butyrate,105-66-8,3.0,saturated esters,37.3,2.1,CCCOC(=O)CCC,4467_0_bd_coord.json
+propyl-2-methyl-2-propenoate,2210-28-8,4.0,unsaturated esters,37.1,2.1,C=C(C)C(=O)OCCC,39144_0_bd_coord.json
+ethyl isopentanoate,108-64-5,3.0,saturated esters,36.6,2.1,CCOC(=O)CC(C)C,508255_871758_bd_coord.json
+2-methyl-2-pentanol,590-36-3,3.0,saturated alcohols,36.4,2.1,CCCC(C)(C)O,16318_0_bd_coord.json
+methyl-3-methyl-2-butenoate,924-50-5,4.0,unsaturated esters,36.4,2.1,COC(=O)C=C(C)C,509763_ca3e69_bd_coord.json
+isopropyl butyrate,638-11-9,3.0,saturated esters,36.3,2.1,CCCC(=O)OC(C)C,19577_0_bd_coord.json
+3-octanone,106-68-3,3.0,saturated alkanone,36.0,2.2,CCCCCC(=O)CC,4525_0_bd_coord.json
+butyl acetate,123-86-4,3.0,saturated esters,36.0,2.2,CCCCOC(C)=O,6751_0_bd_coord.json
+n-heptane,142-82-5,3.0,linear alkanes,36.0,2.2,CCCCCCC,7248_0_bd_coord.json
+2-methyl-3-hexanone,7379-12-6,3.0,saturated alkanone,35.9,2.2,CCCC(=O)C(C)C,80219_0_bd_coord.json
+pentyl formate,638-49-3,3.0,saturated esters,35.7,2.2,CCCCCOC=O,508276_af34ab_bd_coord.json
+4-methyl-1-pentanol,626-89-1,3.0,saturated alcohols,35.6,2.2,CC(C)CCCO,18730_0_bd_coord.json
+1-heptanol,111-70-6,3.0,saturated alcohols,34.7,2.2,CCCCCCCO,5942_0_bd_coord.json
+dipropyl carbonate,623-96-1,3.0,other multi-oxygen compounds,34.5,2.2,CCCOC(=O)OCCC,18327_0_bd_coord.json
+cyclohexanone,108-94-1,3.0,saturated alkanone,34.3,2.2,O=C1CCCCC1,1572_0_bd_coord.json
+ethyl-2-methyl-2-butenoate,5837-78-5,4.0,unsaturated esters,34.0,2.2,C/C=C(\C)C(=O)OCC,508292_8673ea_bd_coord.json
+heptanal,111-71-7,3.0,saturated aldehyde,33.8,2.2,CCCCCCC=O,6034_0_bd_coord.json
+methyl-2-pentenoate,15790-88-2,4.0,unsaturated esters,33.6,2.2,CC/C=C/C(=O)OC,23138_0_bd_coord.json
+3-methoxy-3-methyl-1-butanol,56539-66-3,3.0,other multi-oxygen compounds,33.2,2.2,COC(C)(C)CCO,176748_0_bd_coord.json
+2-methyl-2-butanol,75-85-4,3.0,saturated alcohols,32.9,2.2,CCC(C)(C)O,1402_0_bd_coord.json
+4-methyl-2-pentanone,108-10-1,3.0,saturated alkanone,32.8,2.2,CC(=O)CC(C)C,5069_0_bd_coord.json
+methyl heptanoate,106-73-0,3.0,saturated esters,32.5,2.2,CCCCCCC(=O)OC,4742_0_bd_coord.json
+propyl propionate,106-36-5,3.0,saturated esters,31.9,2.2,CCCOC(=O)CC,4698_0_bd_coord.json
+butyl formate,592-84-7,3.0,saturated esters,31.0,2.3,CCCCOC=O,4504_0_bd_coord.json
+2-methyl-3-pentanone,565-69-5,3.0,saturated alkanone,30.7,2.3,CCC(=O)C(C)C,15664_0_bd_coord.json
+3-heptanone,106-35-4,3.0,saturated alkanone,30.7,2.3,CCCCC(=O)CC,4612_0_bd_coord.json
+isobutyl formate,542-55-2,3.0,saturated esters,30.4,2.3,CC(C)COC=O,15081_0_bd_coord.json
+ethyl-2-butenoate,623-70-1,4.0,unsaturated esters,30.3,2.3,C/C=C/C(=O)OCC,18248_0_bd_coord.json
+1-hexanol,111-27-3,3.0,saturated alcohols,30.0,2.3,CCCCCCO,5929_0_bd_coord.json
+"2,2-dimethylbutyric acid",595-37-9,3.0,saturated esters,30.0,2.3,CCC(C)(C)C(=O)O,3033_0_bd_coord.json
+3-pentanol,584-02-1,3.0,saturated alcohols,29.1,2.3,CCC(O)CC,15915_0_bd_coord.json
+2-ethylbutanal,97-96-1,3.0,saturated aldehyde,29.0,2.3,CCC(C=O)CC,2904_0_bd_coord.json
+methyl-2-methyl-2-propenoate,80-62-6,4.0,unsaturated esters,29.0,2.3,C=C(C)C(=O)OC,1850_0_bd_coord.json
+4-heptanone,123-19-3,3.0,saturated alkanone,28.5,2.3,CCCC(=O)CCC,6667_0_bd_coord.json
+ethyl pentanoate,539-82-2,3.0,saturated esters,28.4,2.3,CCCCC(=O)OCC,14802_0_bd_coord.json
+methyl isopentanoate,556-24-1,3.0,saturated esters,28.4,2.3,COC(=O)CC(C)C,15377_0_bd_coord.json
+dipropyl ether,111-43-3,3.0,saturated ethers,28.0,2.3,CCCOCCC,5966_0_bd_coord.json
+tert-butanol,75-65-0,3.0,saturated alcohols,27.5,2.3,CC(C)(C)O,41_0_bd_coord.json
+"1,1-diethoxypropane",4744-08-5,3.0,other multi-oxygen compounds,27.3,2.4,CCOC(CC)OCC,59717_0_bd_coord.json
+methyl-2-butenoate,623-43-8,4.0,unsaturated esters,27.3,2.4,C/C=C/C(=O)OC,17710_0_bd_coord.json
+hexanal,66-25-1,3.0,saturated aldehyde,26.7,2.4,CCCCCC=O,999_0_bd_coord.json
+3-methyl-2-butanone,563-80-4,3.0,saturated alkanone,26.6,2.4,CC(=O)C(C)C,15567_0_bd_coord.json
+tetrahydropyran,142-68-7,3.0,cyclic saturated ethers,26.5,2.4,C1CCOCC1,7323_0_bd_coord.json
+ethyl isobutyrate,97-62-1,3.0,saturated esters,26.1,2.4,CCOC(=O)C(C)C,508373_b19713_bd_coord.json
+2-ethylbutyric acid,88-09-5,3.0,saturated esters,25.9,2.4,CCC(CC)C(=O)O,2010_0_bd_coord.json
+2-hexanone,591-78-6,3.0,saturated alkanone,25.6,2.4,CCCCC(C)=O,5138_0_bd_coord.json
+2-isopropoxyethanol,109-59-1,3.0,other multi-oxygen compounds,25.5,2.4,CC(C)OCCO,5503_0_bd_coord.json
+3-hexanone,589-38-8,3.0,saturated alkanone,25.5,2.4,CCCC(=O)CC,509886_04ffd9_bd_coord.json
+ethyl butyrate,105-54-4,3.0,saturated esters,25.5,2.4,CCCC(=O)OCC,4420_0_bd_coord.json
+1-pentanol,71-41-0,3.0,saturated alcohols,25.4,2.4,CCCCCO,1200_0_bd_coord.json
+ethyl-2-methyl-2-propenoate,97-63-2,4.0,unsaturated esters,25.4,2.4,C=C(C)C(=O)OCC,2988_0_bd_coord.json
+2-butoxyethanol,111-76-2,3.0,other multi-oxygen compounds,25.3,2.4,CCCCOCCO,1640_0_bd_coord.json
+propyl acetate,109-60-4,3.0,saturated esters,24.4,2.4,CCCOC(C)=O,5508_0_bd_coord.json
+isopropyl acetate,108-21-4,3.0,saturated esters,23.7,2.5,CC(=O)OC(C)C,5067_0_bd_coord.json
+methyl butyl ether,628-28-4,3.0,saturated ethers,23.0,2.5,CCCCOC,19021_0_bd_coord.json
+methyl pentanoate,624-24-8,3.0,saturated esters,22.3,2.5,CCCCC(=O)OC,18431_0_bd_coord.json
+methyl isobutyrate,547-63-7,3.0,saturated esters,22.2,2.5,COC(=O)C(C)C,15213_0_bd_coord.json
+1-butanol,71-36-3,3.0,saturated alcohols,22.0,2.5,CCCCO,1195_0_bd_coord.json
+ethyl-2-propenoate,140-88-5,4.0,unsaturated esters,22.0,2.5,C=CC(=O)OCC,508399_56fa16_bd_coord.json
+isobutanal,78-84-2,3.0,saturated aldehyde,21.2,2.5,CC(C)C=O,1669_0_bd_coord.json
+2-pentanone,107-87-9,3.0,saturated alkanone,21.1,2.5,CCCC(C)=O,4875_0_bd_coord.json
+"1,2-diethoxyethane",629-14-1,3.0,other multi-oxygen compounds,20.4,2.6,CCOCCOCC,19297_0_bd_coord.json
+isopropyl formate,625-55-8,3.0,saturated esters,20.3,2.6,CC(C)OC=O,18574_0_bd_coord.json
+tetrahydrofuran,109-99-9,3.0,cyclic saturated ethers,20.3,2.6,C1CCOC1,5461_0_bd_coord.json
+methyl-2-propenoate,96-33-3,4.0,unsaturated esters,19.4,2.6,C=CC(=O)OC,2884_0_bd_coord.json
+isobutyric acid,79-31-2,3.0,saturated esters,18.8,2.6,CC(C)C(=O)O,1736_0_bd_coord.json
+diethoxymethane,462-95-3,3.0,other multi-oxygen compounds,18.5,2.6,CCOCOCC,12471_0_bd_coord.json
+butyric acid,107-92-6,3.0,saturated esters,18.1,2.6,CCCC(=O)O,824_0_bd_coord.json
+methyl propyl ether,557-17-5,3.0,saturated ethers,18.0,2.6,CCCOC,15398_0_bd_coord.json
+3-methoxy-1-propanol,1589-49-7,3.0,other multi-oxygen compounds,17.9,2.6,COCCCO,508422_58c103_bd_coord.json
+butanal,123-72-8,3.0,saturated aldehyde,17.6,2.6,CCCC=O,6745_0_bd_coord.json
+2-butanone,78-93-3,3.0,saturated alkanone,17.2,2.7,CCC(C)=O,508423_49e42c_bd_coord.json
+diethyl ether,60-29-7,3.0,saturated ethers,16.8,2.7,CCOCC,829_0_bd_coord.json
+"2,2-dimethoxypropane",77-76-9,3.0,other multi-oxygen compounds,16.4,2.7,COC(C)(C)OC,1479_0_bd_coord.json
+1-propanol,71-23-8,3.0,saturated alcohols,16.2,2.7,CCCO,1183_0_bd_coord.json
+diglyme,111-96-6,3.0,other multi-oxygen compounds,16.1,2.7,COCCOCCOC,509932_5dfdc8_bd_coord.json
+diethyl carbonate,105-58-8,3.0,other multi-oxygen compounds,15.3,2.7,CCOC(=O)OCC,4327_0_bd_coord.json
+2-(2-methoxyethoxy)-ethanol,111-77-3,3.0,other multi-oxygen compounds,15.0,2.7,COCCOCCO,6087_0_bd_coord.json
+methyl propionate,554-12-1,3.0,saturated esters,15.0,2.7,CCC(=O)OC,11574_0_bd_coord.json
+"1,1-dimethoxy-2-propanone",6342-56-9,3.0,other multi-oxygen compounds,14.8,2.7,COC(OC)C(C)=O,508431_6a2cc4_bd_coord.json
+propanal (propionaldehyde),123-38-6,3.0,saturated aldehyde,13.9,2.8,CCC=O,6559_0_bd_coord.json
+ethyl acetate,141-78-6,3.0,saturated esters,13.4,2.8,CCOC(C)=O,7187_0_bd_coord.json
+2-propanone (acetone),67-64-1,3.0,saturated alkanone,13.0,2.8,CC(C)=O,575_0_bd_coord.json
+trimethoxymethane,149-73-5,3.0,other multi-oxygen compounds,12.8,2.8,COC(OC)OC,508437_3bdd6d_bd_coord.json
+"1,1,1-trimethoxyethane",1445-45-0,3.0,other multi-oxygen compounds,12.7,2.8,COC(C)(OC)OC,14518_0_bd_coord.json
+dimethoxymethane,109-87-5,3.0,other multi-oxygen compounds,10.9,2.9,COCOC,5420_0_bd_coord.json
+dimethyl carbonate,616-38-6,3.0,other multi-oxygen compounds,10.5,2.9,COC(=O)OC,17608_0_bd_coord.json
+ethanol,64-17-5,3.0,saturated alcohols,10.3,2.9,CCO,900_0_bd_coord.json
+2-hydroxy-methylpropionate,27871-49-4,3.0,other multi-oxygen compounds,9.6,2.9,COC(=O)[C@H](C)O,15209_0_bd_coord.json
+methanol,67-56-1,3.0,saturated alcohols,6.6,3.0,CO,100_0_bd_coord.json
+1-methyl-1-cyclohexene,591-49-1,,cyclic alkenes,62.0,3.0,CC1=CCCCC1,16461_0_bd_coord.json
+1-tert-butyl-1-cyclohexene,3419-66-7,,cyclic alkenes,161.0,5.0,CC(C)(C)C1=CCCCC1,48556_0_bd_coord.json
+cyclooctene,931-88-4,,cyclic alkenes,78.0,4.0,C1=C\CCCCCC/1,508442_9f6d62_bd_coord.json
+cycloheptene,628-92-2,,cyclic alkenes,79.0,4.0,C1=CCCCCC1,19128_0_bd_coord.json
+cyclopentanone,120-92-3,,cyclic ketone,22.0,4.0,O=C1CCCC1,6427_0_bd_coord.json
+"2,5-dimethylfuran",625-86-5,,furan,55.0,4.0,Cc1ccc(C)o1,508464_2b8c12_bd_coord.json
+2-methyl-3-buten-2-ol,115-18-4,,unsaturated alcohol,25.0,4.0,C=CC(C)(C)O,6313_0_bd_coord.json

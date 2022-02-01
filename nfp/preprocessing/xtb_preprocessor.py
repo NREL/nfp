@@ -11,7 +11,10 @@ except ImportError:
     tf = None
 
 from nfp.preprocessing import features
-from nfp.preprocessing.mol_preprocessor import MolPreprocessor, SmilesPreprocessor
+from nfp.preprocessing.mol_preprocessor import (
+    MolPreprocessor,
+    SmilesPreprocessor,
+)
 
 
 class xTBPreprocessor(MolPreprocessor):
@@ -100,6 +103,7 @@ class xTBPreprocessor(MolPreprocessor):
 
             edge_data = {
                 "bondatoms": (mol.GetAtomWithIdx(i), mol.GetAtomWithIdx(j)),
+                "bond": mol.GetBondBetweenAtoms(i, j),
                 "bond_xtb": [json_data[prop][i][j] for prop in self.xtb_bond_features],
             }
 
@@ -110,19 +114,27 @@ class xTBPreprocessor(MolPreprocessor):
     def get_edge_features(
         self, edge_data: list, max_num_edges
     ) -> Dict[str, np.ndarray]:
-
+        bond_indices = np.zeros(max_num_edges, dtype=self.output_dtype)
         bond_feature_matrix = np.zeros(max_num_edges, dtype=self.output_dtype)
         bond_feature_matrix_xtb = np.zeros(
             (max_num_edges, len(self.xtb_bond_features)), dtype="float32"
         )
 
         for n, (start_atom, end_atom, bond_dict) in enumerate(edge_data):
+
+            bond_indices[n] = (
+                bond_dict["bond"].GetIdx() if bond_dict["bond"] is not None else int(-1)
+            )
             bond_feature_matrix[n] = self.bond_tokenizer(
                 self.bond_features(start_atom, end_atom, bond_dict["bondatoms"])
             )
             bond_feature_matrix_xtb[n] = bond_dict["bond_xtb"]
 
-        return {"bond": bond_feature_matrix, "bond_xtb": bond_feature_matrix_xtb}
+        return {
+            "bond": bond_feature_matrix,
+            "bond_xtb": bond_feature_matrix_xtb,
+            "bond_indices": bond_indices,
+        }
 
     def get_node_features(
         self, node_data: list, max_num_nodes: int
@@ -147,6 +159,9 @@ class xTBPreprocessor(MolPreprocessor):
         output_signature["bond_xtb"] = tf.TensorSpec(
             shape=(None, None), dtype="float32"
         )
+        output_signature["bond_indices"] = tf.TensorSpec(
+            shape=(None,), dtype=self.output_dtype
+        )
         output_signature["mol_xtb"] = tf.TensorSpec(shape=(None,), dtype="float32")
         return output_signature
 
@@ -155,6 +170,7 @@ class xTBPreprocessor(MolPreprocessor):
         padding_values = super().padding_values
         padding_values["atom_xtb"] = tf.constant(np.nan, dtype="float32")
         padding_values["bond_xtb"] = tf.constant(np.nan, dtype="float32")
+        padding_values["bond_indices"] = tf.constant(0, dtype=self.output_dtype)
         padding_values["mol_xtb"] = tf.constant(np.nan, dtype="float32")
         return padding_values
 
@@ -169,13 +185,19 @@ class xTBPreprocessor(MolPreprocessor):
         )
         tfrecord_features["bond_xtb"] = tf.io.FixedLenFeature(
             [],
-            dtype=self.output_dtype
+            dtype="float32"
             if len(self.output_signature["bond_xtb"].shape) == 0
+            else tf.string,
+        )
+        tfrecord_features["bond_indices"] = tf.io.FixedLenFeature(
+            [],
+            dtype=self.output_dtype
+            if len(self.output_signature["bond_indices"].shape) == 0
             else tf.string,
         )
         tfrecord_features["mol_xtb"] = tf.io.FixedLenFeature(
             [],
-            dtype=self.output_dtype
+            dtype="float32"
             if len(self.output_signature["mol_xtb"].shape) == 0
             else tf.string,
         )
@@ -183,10 +205,4 @@ class xTBPreprocessor(MolPreprocessor):
 
 
 class xTBSmilesPreprocessor(SmilesPreprocessor, xTBPreprocessor):
-    pass
-
-
-class xTBSmilesBondIndexPreprocessor(
-    SmilesPreprocessor, BondIndexPreprocessor, xTBPreprocessor
-):
     pass

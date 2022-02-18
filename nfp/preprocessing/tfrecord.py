@@ -1,8 +1,8 @@
 import numpy as np
-import tensorflow as tf
-
+from nfp.frameworks import tf
 
 # Code from https://www.tensorflow.org/tutorials/load_data/tfrecord
+
 
 def _bytes_feature(value):
     """Returns a bytes_list from a string / byte."""

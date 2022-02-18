@@ -1,11 +1,9 @@
+import nfp
 import numpy as np
 import pytest
 import tensorflow as tf
 from numpy.testing import assert_allclose
 from tensorflow.keras import layers
-
-import nfp
-
 
 # def test_slice():
 #     connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name='connectivity')
@@ -24,8 +22,8 @@ import nfp
 
 
 def test_gather():
-    in1 = layers.Input(shape=[None], dtype='float', name='data')
-    in2 = layers.Input(shape=[None], dtype=tf.int64, name='indices')
+    in1 = layers.Input(shape=[None], dtype="float", name="data")
+    in2 = layers.Input(shape=[None], dtype=tf.int64, name="indices")
 
     gather = nfp.Gather()([in1, in2])
 
@@ -38,32 +36,31 @@ def test_gather():
     assert_allclose(out, np.vstack([data[0, indices[0]], data[1, indices[1]]]))
 
 
-@pytest.mark.parametrize('method', ['sum', 'mean', 'max', 'min', 'prod'])
+@pytest.mark.parametrize("method", ["sum", "mean", "max", "min", "prod"])
 def test_reduce(smiles_inputs, method):
     preprocessor, inputs = smiles_inputs
     func = getattr(np, method)
 
-    atom_class = layers.Input(shape=[None], dtype=tf.int64, name='atom')
-    bond_class = layers.Input(shape=[None], dtype=tf.int64, name='bond')
-    connectivity = layers.Input(shape=[None, 2],
-                                dtype=tf.int64,
-                                name='connectivity')
+    atom_class = layers.Input(shape=[None], dtype=tf.int64, name="atom")
+    bond_class = layers.Input(shape=[None], dtype=tf.int64, name="bond")
+    connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name="connectivity")
 
-    atom_embed = layers.Embedding(preprocessor.atom_classes,
-                                  16,
-                                  mask_zero=True)(atom_class)
-    bond_embed = layers.Embedding(preprocessor.bond_classes,
-                                  16,
-                                  mask_zero=True)(bond_class)
+    atom_embed = layers.Embedding(preprocessor.atom_classes, 16, mask_zero=True)(
+        atom_class
+    )
+    bond_embed = layers.Embedding(preprocessor.bond_classes, 16, mask_zero=True)(
+        bond_class
+    )
 
-    reduced = nfp.Reduce(method)(
-        [bond_embed, connectivity[:, :, 0], atom_embed])
+    reduced = nfp.Reduce(method)([bond_embed, connectivity[:, :, 0], atom_embed])
 
-    model = tf.keras.Model([atom_class, bond_class, connectivity],
-                           [atom_embed, bond_embed, reduced])
+    model = tf.keras.Model(
+        [atom_class, bond_class, connectivity], [atom_embed, bond_embed, reduced]
+    )
 
     atom_state, bond_state, atom_reduced = model(
-        [inputs['atom'], inputs['bond'], inputs['connectivity']])
+        [inputs["atom"], inputs["bond"], inputs["connectivity"]]
+    )
 
     assert_allclose(atom_reduced[0, 0, :], func(bond_state[0, :4, :], 0))
     assert_allclose(atom_reduced[0, 1, :], func(bond_state[0, 4:8, :], 0))
@@ -75,8 +72,8 @@ def test_reduce(smiles_inputs, method):
 
 
 def test_tile():
-    state = layers.Input(shape=[None], dtype='float', name='data')
-    target = layers.Input(shape=[None, 3], dtype=tf.int64, name='indices')
+    state = layers.Input(shape=[None], dtype="float", name="data")
+    target = layers.Input(shape=[None, 3], dtype=tf.int64, name="indices")
 
     tile = nfp.Tile()([state, target])
 
@@ -96,21 +93,25 @@ def test_tile():
 
 def test_RBFExpansion(crystals_and_preprocessor):
     preprocessor, inputs = crystals_and_preprocessor
-    input_distance = inputs['distance'].numpy()
+    input_distance = inputs["distance"].numpy()
     assert np.nanmin(input_distance) > 1  # we shouldn't be padding with zeros
 
     input_distance[0, 0] = 2
     input_distance[0, 1] = 3
     input_distance[0, 2] = 4
 
-    distance = layers.Input(shape=[None], dtype=tf.float32, name='distance')
-    rbf_distance = nfp.RBFExpansion(dimension=10, init_gap=10, init_max_distance=10,)(distance)
+    distance = layers.Input(shape=[None], dtype=tf.float32, name="distance")
+    rbf_distance = nfp.RBFExpansion(
+        dimension=10,
+        init_gap=10,
+        init_max_distance=10,
+    )(distance)
 
     model = tf.keras.Model([distance], [rbf_distance])
     embedded_distance = model(input_distance)
 
     # The first column of the valid distances should be essentially zero
-    assert embedded_distance[embedded_distance._keras_mask][:, 0].numpy().max() < 1E-8
+    assert embedded_distance[embedded_distance._keras_mask][:, 0].numpy().max() < 1e-8
 
     assert embedded_distance[0, 0].numpy().argmax() == 2
     assert embedded_distance[0, 1].numpy().argmax() == 3

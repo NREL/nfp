@@ -2,7 +2,7 @@
 unspecified inputs. These are just a couple simple loss functions that mask NaN
 values in both the test and predicted tensors when computing the cost. """
 
-import tensorflow as tf
+from nfp.frameworks import tf
 
 
 def masked_mean_squared_error(y_true, y_pred):

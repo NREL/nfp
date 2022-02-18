@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 import networkx as nx
 import numpy as np
-import tensorflow as tf
+from nfp.frameworks import tf
 from nfp.preprocessing.tokenizer import Tokenizer
 
 logger = logging.getLogger(__name__)

@@ -1,15 +1,10 @@
 import json
-from typing import Callable, Dict, Hashable, Optional, List
+from typing import Dict, List, Optional
 
 import networkx as nx
 import numpy as np
 import rdkit.Chem
-
-try:
-    import tensorflow as tf
-except ImportError:
-    tf = None
-
+from nfp.frameworks import tf
 from nfp.preprocessing import features
 from nfp.preprocessing.mol_preprocessor import MolPreprocessor, SmilesPreprocessor
 

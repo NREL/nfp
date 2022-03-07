@@ -1,5 +1,8 @@
 import json
 from typing import Callable, Dict, Hashable, Optional, List
+from sklearn.preprocessing import StandardScaler
+from rdkit.Geometry import Point3D
+from rdkit.Chem import AllChem
 
 import networkx as nx
 import numpy as np
@@ -26,11 +29,13 @@ class xTBPreprocessor(MolPreprocessor):
         xtb_bond_features: Optional[List[str]] = None,
         xtb_mol_features: Optional[List[str]] = None,
         cutoff: float = 0.3,
+        scaler: bool = True,
         **kwargs
     ):
         super(xTBPreprocessor, self).__init__(*args, **kwargs)
         self.explicit_hs = explicit_hs
         self.cutoff = cutoff
+        self.scaler = scaler
 
         # update only bond features as we dont use rdkit
         self.bond_features = features.bond_features_wbo
@@ -84,6 +89,7 @@ class xTBPreprocessor(MolPreprocessor):
         for atom in mol.GetAtoms():
             atom_data = {
                 "atom": atom,
+                "atom_index": atom.GetIdx(),
                 "atom_xtb": [
                     json_data[prop][atom.GetIdx()] for prop in self.xtb_atom_features
                 ],
@@ -96,14 +102,19 @@ class xTBPreprocessor(MolPreprocessor):
             (i, j)
             for i in range(len(wbo))
             for j in range(len(wbo))
-            if wbo[i][j] > self.cutoff
+            if wbo[i][j] > self.cutoff and j > i
         )
 
+        max_bonds = len(mol.GetBonds()) - 1
         for i, j in edges_to_add:
-
+            if mol.GetBondBetweenAtoms(i, j) is not None:
+                idx = mol.GetBondBetweenAtoms(i, j).GetIdx()
+            else:
+                max_bonds += 1
+                idx = max_bonds
             edge_data = {
                 "bondatoms": (mol.GetAtomWithIdx(i), mol.GetAtomWithIdx(j)),
-                "bond": mol.GetBondBetweenAtoms(i, j),
+                "bond_index": idx,
                 "bond_xtb": [json_data[prop][i][j] for prop in self.xtb_bond_features],
             }
 
@@ -115,37 +126,48 @@ class xTBPreprocessor(MolPreprocessor):
         self, edge_data: list, max_num_edges
     ) -> Dict[str, np.ndarray]:
         bond_indices = np.zeros(max_num_edges, dtype=self.output_dtype)
+        bond_atom_indices = np.zeros((max_num_edges, 2), dtype=self.output_dtype)
         bond_feature_matrix = np.zeros(max_num_edges, dtype=self.output_dtype)
         bond_feature_matrix_xtb = np.zeros(
             (max_num_edges, len(self.xtb_bond_features)), dtype="float32"
         )
 
         for n, (start_atom, end_atom, bond_dict) in enumerate(edge_data):
-
-            bond_indices[n] = (
-                bond_dict["bond"].GetIdx() if bond_dict["bond"] is not None else int(-1)
-            )
+            bond_indices[n] = bond_dict["bond_index"]
+            bond_atom_indices[n] = (start_atom, end_atom)
             bond_feature_matrix[n] = self.bond_tokenizer(
                 self.bond_features(start_atom, end_atom, bond_dict["bondatoms"])
             )
             bond_feature_matrix_xtb[n] = bond_dict["bond_xtb"]
 
+        if self.scaler:
+            scaler = StandardScaler()
+            bond_feature_matrix_xtb = scaler.fit_transform(bond_feature_matrix_xtb)
         return {
             "bond": bond_feature_matrix,
             "bond_xtb": bond_feature_matrix_xtb,
             "bond_indices": bond_indices,
+            "bond_atom_indices": bond_atom_indices,
         }
 
     def get_node_features(
         self, node_data: list, max_num_nodes: int
     ) -> Dict[str, np.ndarray]:
+        atom_indices = np.zeros(max_num_nodes, dtype=self.output_dtype)
         node_features = super().get_node_features(node_data, max_num_nodes)
         node_features["atom_xtb"] = np.zeros(
             [max_num_nodes, len(self.xtb_atom_features)], dtype="float32"
         )
+
         for n, atom_dict in node_data:
+            atom_indices[n] = atom_dict["atom_index"]
             node_features["atom_xtb"][n] = atom_dict["atom_xtb"]
-        return node_features
+
+        if self.scaler:
+            scaler = StandardScaler()
+            node_features["atom_xtb"] = scaler.fit_transform(node_features["atom_xtb"])
+
+        return {"atom_indices": atom_indices, **node_features}
 
     def get_graph_features(self, graph_data: dict) -> Dict[str, np.ndarray]:
         return {"mol_xtb": np.asarray(graph_data["mol_xtb"])}
@@ -162,16 +184,24 @@ class xTBPreprocessor(MolPreprocessor):
         output_signature["bond_indices"] = tf.TensorSpec(
             shape=(None,), dtype=self.output_dtype
         )
+        output_signature["bond_atom_indices"] = tf.TensorSpec(
+            shape=(None, None), dtype=self.output_dtype
+        )
+        output_signature["atom_indices"] = tf.TensorSpec(
+            shape=(None,), dtype=self.output_dtype
+        )
         output_signature["mol_xtb"] = tf.TensorSpec(shape=(None,), dtype="float32")
         return output_signature
 
     @property
     def padding_values(self) -> Dict[str, tf.constant]:
         padding_values = super().padding_values
-        padding_values["atom_xtb"] = tf.constant(np.nan, dtype="float32")
-        padding_values["bond_xtb"] = tf.constant(np.nan, dtype="float32")
+        padding_values["atom_xtb"] = tf.constant(0, dtype="float32")
+        padding_values["bond_xtb"] = tf.constant(0, dtype="float32")
         padding_values["bond_indices"] = tf.constant(0, dtype=self.output_dtype)
-        padding_values["mol_xtb"] = tf.constant(np.nan, dtype="float32")
+        padding_values["bond_atom_indices"] = tf.constant(0, dtype=self.output_dtype)
+        padding_values["atom_indices"] = tf.constant(0, dtype=self.output_dtype)
+        padding_values["mol_xtb"] = tf.constant(0, dtype="float32")
         return padding_values
 
     @property
@@ -195,6 +225,18 @@ class xTBPreprocessor(MolPreprocessor):
             if len(self.output_signature["bond_indices"].shape) == 0
             else tf.string,
         )
+        tfrecord_features["bond_atom_indices"] = tf.io.FixedLenFeature(
+            [],
+            dtype=self.output_dtype
+            if len(self.output_signature["bond_atom_indices"].shape) == 0
+            else tf.string,
+        )
+        tfrecord_features["atom_indices"] = tf.io.FixedLenFeature(
+            [],
+            dtype=self.output_dtype
+            if len(self.output_signature["atom_indices"].shape) == 0
+            else tf.string,
+        )
         tfrecord_features["mol_xtb"] = tf.io.FixedLenFeature(
             [],
             dtype="float32"
@@ -205,4 +247,87 @@ class xTBPreprocessor(MolPreprocessor):
 
 
 class xTBSmilesPreprocessor(SmilesPreprocessor, xTBPreprocessor):
+    pass
+
+
+class xTB3DPreprocessor(xTBPreprocessor):
+    def __init__(self, n_neighbors: int = 100, distcutoff: int = 5, **kwargs):
+        self.n_neighbors = n_neighbors
+        self.distcutoff = distcutoff
+        super(xTB3DPreprocessor, self).__init__(**kwargs)
+
+    def create_nx_graph(
+        self, mol: rdkit.Chem.Mol, jsonfile: str, **kwargs
+    ) -> nx.DiGraph:
+
+        with open(jsonfile, "r") as f:
+            json_data = json.load(f)
+
+        # add hydrogens as wbo contains hydrogens and add xtb features to the graphs
+        mol_data = {"mol_xtb": [json_data[prop] for prop in self.xtb_mol_features]}
+
+        g = nx.Graph(mol=mol, **mol_data)
+        for atom in mol.GetAtoms():
+            atom_data = {
+                "atom": atom,
+                "atom_index": atom.GetIdx(),
+                "atom_xtb": [
+                    json_data[prop][atom.GetIdx()] for prop in self.xtb_atom_features
+                ],
+            }
+            g.add_node(atom.GetIdx(), **atom_data)
+
+        # add edges based on neighbours from coordinates.
+        coordinates = np.array(json_data["coordinates"])
+
+        # updating coordinates to xTB and getting distance matrix
+        AllChem.EmbedMolecule(mol)
+        conf = mol.GetConformer()
+
+        # Correct the 3D positions of the atoms using the optimized geometry
+        for i in range(conf.GetNumAtoms()):
+            x, y, z = coordinates[i]
+            conf.SetAtomPosition(i, Point3D(float(x), float(y), float(z)))
+
+        distance_matrix = rdkit.Chem.Get3DDistanceMatrix(mol)
+
+        edges_to_add = []
+        for n, atom in enumerate(mol.GetAtoms()):
+            # if n_neighbors is greater than total atoms, then each atom is a
+            # neighbor.
+            if (self.n_neighbors + 1) > len(mol.GetAtoms()):
+                neighbor_end_index = len(mol.GetAtoms())
+            else:
+                neighbor_end_index = self.n_neighbors + 1
+
+            distance_atom = distance_matrix[n, :]
+            cutoff_end_index = distance_atom[distance_atom < self.distcutoff].size
+
+            end_index = min(neighbor_end_index, cutoff_end_index)
+            neighbor_inds = distance_matrix[n, :].argsort()[1:end_index]
+
+            if len(neighbor_inds) == 0:
+                neighbor_inds = [n]
+            for neighbor in neighbor_inds:
+                edges_to_add.append((int(n), int(neighbor)))
+
+        max_bonds = len(mol.GetBonds()) - 1
+        for i, j in edges_to_add:
+            if mol.GetBondBetweenAtoms(i, j) is not None:
+                idx = mol.GetBondBetweenAtoms(i, j).GetIdx()
+            else:
+                max_bonds += 1
+                idx = max_bonds
+            edge_data = {
+                "bondatoms": (mol.GetAtomWithIdx(i), mol.GetAtomWithIdx(j)),
+                "bond_index": idx,
+                "bond_xtb": [json_data[prop][i][j] for prop in self.xtb_bond_features],
+            }
+
+            g.add_edge(i, j, **edge_data)
+
+        return nx.DiGraph(g)
+
+
+class xTBSmiles3DPreprocessor(SmilesPreprocessor, xTB3DPreprocessor):
     pass

@@ -104,11 +104,3 @@ def bond_features_v3(bond, flipped=False):
             end_atom,
         )
     )
-
-
-def bond_features_wbo(start_atom, end_atom, bondatoms):
-
-    start_atom_symbol = bondatoms[0].GetSymbol()
-    end_atom_symbol = bondatoms[1].GetSymbol()
-
-    return str((start_atom_symbol, end_atom_symbol))

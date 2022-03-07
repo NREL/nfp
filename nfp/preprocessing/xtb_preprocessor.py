@@ -38,7 +38,7 @@ class xTBPreprocessor(MolPreprocessor):
         self.scaler = scaler
 
         # update only bond features as we dont use rdkit
-        self.bond_features = features.bond_features_wbo
+        self.bond_features = features.bond_features_v3
 
         if xtb_atom_features is None:
             self.xtb_atom_features = [
@@ -114,6 +114,7 @@ class xTBPreprocessor(MolPreprocessor):
                 idx = max_bonds
             edge_data = {
                 "bondatoms": (mol.GetAtomWithIdx(i), mol.GetAtomWithIdx(j)),
+                "bond": mol.GetBondBetweenAtoms(i, j),
                 "bond_index": idx,
                 "bond_xtb": [json_data[prop][i][j] for prop in self.xtb_bond_features],
             }
@@ -135,9 +136,12 @@ class xTBPreprocessor(MolPreprocessor):
         for n, (start_atom, end_atom, bond_dict) in enumerate(edge_data):
             bond_indices[n] = bond_dict["bond_index"]
             bond_atom_indices[n] = (start_atom, end_atom)
-            bond_feature_matrix[n] = self.bond_tokenizer(
-                self.bond_features(start_atom, end_atom, bond_dict["bondatoms"])
-            )
+            if bond_dict["bond"] is not None:
+                bond_feature_matrix[n] = self.bond_tokenizer(
+                    self.bond_features(bond_dict["bond"])
+                )
+            else:
+                bond_feature_matrix[n] = 0
             bond_feature_matrix_xtb[n] = bond_dict["bond_xtb"]
 
         if self.scaler:
@@ -320,6 +324,7 @@ class xTB3DPreprocessor(xTBPreprocessor):
                 idx = max_bonds
             edge_data = {
                 "bondatoms": (mol.GetAtomWithIdx(i), mol.GetAtomWithIdx(j)),
+                "bond": mol.GetBondBetweenAtoms(i, j),
                 "bond_index": idx,
                 "bond_xtb": [json_data[prop][i][j] for prop in self.xtb_bond_features],
             }

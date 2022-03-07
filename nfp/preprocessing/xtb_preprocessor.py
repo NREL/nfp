@@ -282,18 +282,7 @@ class xTB3DPreprocessor(xTBPreprocessor):
             g.add_node(atom.GetIdx(), **atom_data)
 
         # add edges based on neighbours from coordinates.
-        coordinates = np.array(json_data["coordinates"])
-
-        # updating coordinates to xTB and getting distance matrix
-        AllChem.EmbedMolecule(mol)
-        conf = mol.GetConformer()
-
-        # Correct the 3D positions of the atoms using the optimized geometry
-        for i in range(conf.GetNumAtoms()):
-            x, y, z = coordinates[i]
-            conf.SetAtomPosition(i, Point3D(float(x), float(y), float(z)))
-
-        distance_matrix = rdkit.Chem.Get3DDistanceMatrix(mol)
+        distance_matrix = np.array(json_data["bond_dist"])
 
         edges_to_add = []
         for n, atom in enumerate(mol.GetAtoms()):

@@ -2,7 +2,7 @@ import os
 
 import pytest
 import tensorflow as tf
-from nfp.preprocessing.xtb_preprocessor import xTBSmilesPreprocessor
+from nfp.preprocessing.xtb_preprocessor import xTBSmilesWBOPreprocessor
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -28,7 +28,7 @@ def get_2d_smiles_json():
 def test_xtb_smiles_preprocessor(get_2d_smiles_json):
     train, train_json, test, test_json = get_2d_smiles_json
 
-    preprocessor = xTBSmilesPreprocessor(explicit_hs=True)
+    preprocessor = xTBSmilesWBOPreprocessor(explicit_hs=True)
     inputs = [
         preprocessor(smiles, jsonfile, train=True)
         for smiles, jsonfile in zip(train, train_json)
@@ -67,7 +67,7 @@ def test_xtb_batching(get_2d_smiles_json):
 
     train, train_json, test, test_json = get_2d_smiles_json
 
-    preprocessor = xTBSmilesPreprocessor(explicit_hs=True)
+    preprocessor = xTBSmilesWBOPreprocessor(explicit_hs=True)
 
     inputs = (
         preprocessor(smiles, jsonfile, train=True)

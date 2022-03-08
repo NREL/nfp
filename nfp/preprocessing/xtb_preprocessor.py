@@ -28,13 +28,11 @@ class xTBPreprocessor(MolPreprocessor):
         xtb_atom_features: Optional[List[str]] = None,
         xtb_bond_features: Optional[List[str]] = None,
         xtb_mol_features: Optional[List[str]] = None,
-        cutoff: float = 0.3,
         scaler: bool = True,
         **kwargs
     ):
         super(xTBPreprocessor, self).__init__(*args, **kwargs)
         self.explicit_hs = explicit_hs
-        self.cutoff = cutoff
         self.scaler = scaler
 
         # update only bond features as we dont use rdkit
@@ -96,30 +94,17 @@ class xTBPreprocessor(MolPreprocessor):
             }
             g.add_node(atom.GetIdx(), **atom_data)
 
-        # add edges based on wilberg bond orders.
-        wbo = np.array(json_data["Wiberg matrix"])
-        edges_to_add = (
-            (i, j)
-            for i in range(len(wbo))
-            for j in range(len(wbo))
-            if wbo[i][j] > self.cutoff and j > i
-        )
-
-        max_bonds = len(mol.GetBonds()) - 1
-        for i, j in edges_to_add:
-            if mol.GetBondBetweenAtoms(i, j) is not None:
-                idx = mol.GetBondBetweenAtoms(i, j).GetIdx()
-            else:
-                max_bonds += 1
-                idx = max_bonds
+        for bond in mol.GetBonds():
             edge_data = {
-                "bondatoms": (mol.GetAtomWithIdx(i), mol.GetAtomWithIdx(j)),
-                "bond": mol.GetBondBetweenAtoms(i, j),
-                "bond_index": idx,
-                "bond_xtb": [json_data[prop][i][j] for prop in self.xtb_bond_features],
+                "bondatoms": (bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()),
+                "bond": bond,
+                "bond_index": bond.GetIdx(),
+                "bond_xtb": [
+                    json_data[prop][bond.GetBeginAtomIdx()][bond.GetEndAtomIdx()]
+                    for prop in self.xtb_bond_features
+                ],
             }
-
-            g.add_edge(i, j, **edge_data)
+            g.add_edge(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), **edge_data)
 
         return nx.DiGraph(g)
 
@@ -251,6 +236,64 @@ class xTBPreprocessor(MolPreprocessor):
 
 
 class xTBSmilesPreprocessor(SmilesPreprocessor, xTBPreprocessor):
+    pass
+
+
+class xTBWBOPreprocessor(xTBPreprocessor):
+    def __init__(self, cutoff: int = 0.3, **kwargs):
+        self.cutoff = cutoff
+        super(xTBWBOPreprocessor, self).__init__(**kwargs)
+
+    def create_nx_graph(
+        self, mol: rdkit.Chem.Mol, jsonfile: str, **kwargs
+    ) -> nx.DiGraph:
+
+        with open(jsonfile, "r") as f:
+            json_data = json.load(f)
+
+        # add hydrogens as wbo contains hydrogens and add xtb features to the graphs
+        mol_data = {"mol_xtb": [json_data[prop] for prop in self.xtb_mol_features]}
+
+        g = nx.Graph(mol=mol, **mol_data)
+        for atom in mol.GetAtoms():
+            atom_data = {
+                "atom": atom,
+                "atom_index": atom.GetIdx(),
+                "atom_xtb": [
+                    json_data[prop][atom.GetIdx()] for prop in self.xtb_atom_features
+                ],
+            }
+            g.add_node(atom.GetIdx(), **atom_data)
+
+        # add edges based on wilberg bond orders.
+        wbo = np.array(json_data["Wiberg matrix"])
+        edges_to_add = (
+            (i, j)
+            for i in range(len(wbo))
+            for j in range(len(wbo))
+            if wbo[i][j] > self.cutoff and j > i
+        )
+
+        max_bonds = len(mol.GetBonds()) - 1
+        for i, j in edges_to_add:
+            if mol.GetBondBetweenAtoms(i, j) is not None:
+                idx = mol.GetBondBetweenAtoms(i, j).GetIdx()
+            else:
+                max_bonds += 1
+                idx = max_bonds
+            edge_data = {
+                "bondatoms": (mol.GetAtomWithIdx(i), mol.GetAtomWithIdx(j)),
+                "bond": mol.GetBondBetweenAtoms(i, j),
+                "bond_index": idx,
+                "bond_xtb": [json_data[prop][i][j] for prop in self.xtb_bond_features],
+            }
+
+            g.add_edge(i, j, **edge_data)
+
+        return nx.DiGraph(g)
+
+
+class xTBSmilesWBOPreprocessor(SmilesPreprocessor, xTBWBOPreprocessor):
     pass
 
 

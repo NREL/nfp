@@ -1,9 +1,10 @@
 import nfp
 import numpy as np
 import pytest
-import tensorflow as tf
+from nfp.frameworks import tf
 from numpy.testing import assert_allclose
-from tensorflow.keras import layers
+
+layers = tf.keras.layers
 
 # def test_slice():
 #     connectivity = layers.Input(shape=[None, 2], dtype=tf.int64, name='connectivity')

@@ -1,7 +1,12 @@
 import numpy as np
-import tensorflow.keras.backend as K
+from nfp.frameworks import tf
+from nfp.models import (
+    masked_log_cosh,
+    masked_mean_absolute_error,
+    masked_mean_squared_error,
+)
 
-from nfp.models import (masked_log_cosh, masked_mean_absolute_error, masked_mean_squared_error)
+K = tf.keras.backend
 
 
 def test_losses():

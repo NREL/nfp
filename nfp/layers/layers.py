@@ -1,23 +1,24 @@
-import tensorflow as tf
-from tensorflow.keras import layers as tf_layers
+from nfp.frameworks import tf
+
+assert tf, "Tensorflow 2.x required for GraphLayers"
+tf_layers = tf.keras.layers
 
 
 class RBFExpansion(tf_layers.Layer):
-    def __init__(self,
-                 dimension=128,
-                 init_gap=10,
-                 init_max_distance=7,
-                 trainable=False):
-        """ Layer to calculate radial basis function 'embeddings' for a continuous input variable. The width and
-        location of each bin can be optionally trained. Essentially equivalent to a 1-hot embedding for a continuous
-        variable.
+    def __init__(
+        self, dimension=128, init_gap=10, init_max_distance=7, trainable=False
+    ):
+        """Layer to calculate radial basis function 'embeddings' for a continuous input
+        variable. The width and location of each bin can be optionally trained.
+        Essentially equivalent to a 1-hot embedding for a continuous variable.
 
         Parameters
         ----------
         dimension: The total number of distance bins
         init_gap: The initial width of each gaussian distribution
         init_max_distance: the initial maximum value of the continuous variable
-        trainable: Whether the centers and gap parameters should be added as trainable NN parameters.
+        trainable: Whether the centers and gap parameters should be added as trainable
+            NN parameters.
         """
         super(RBFExpansion, self).__init__()
         self.init_gap = init_gap
@@ -27,24 +28,26 @@ class RBFExpansion(tf_layers.Layer):
 
     def build(self, input_shape):
         self.centers = tf.Variable(
-            name='centers',
+            name="centers",
             initial_value=tf.range(
-                0, self.init_max_distance,
-                delta=self.init_max_distance / self.dimension),
+                0, self.init_max_distance, delta=self.init_max_distance / self.dimension
+            ),
             trainable=self.trainable,
-            dtype=tf.float32)
+            dtype=tf.float32,
+        )
 
-        self.gap = tf.Variable(name='gap',
-                               initial_value=tf.constant(self.init_gap,
-                                                         dtype=tf.float32),
-                               trainable=self.trainable,
-                               dtype=tf.float32)
+        self.gap = tf.Variable(
+            name="gap",
+            initial_value=tf.constant(self.init_gap, dtype=tf.float32),
+            trainable=self.trainable,
+            dtype=tf.float32,
+        )
 
     def call(self, inputs, **kwargs):
-        distances = tf.where(tf.math.is_nan(inputs),
-                             tf.zeros_like(inputs, dtype=inputs.dtype), inputs)
-        offset = tf.expand_dims(distances, -1) - tf.cast(
-            self.centers, inputs.dtype)
+        distances = tf.where(
+            tf.math.is_nan(inputs), tf.zeros_like(inputs, dtype=inputs.dtype), inputs
+        )
+        offset = tf.expand_dims(distances, -1) - tf.cast(self.centers, inputs.dtype)
         logits = -self.gap * offset ** 2
         return tf.exp(logits)
 
@@ -53,18 +56,16 @@ class RBFExpansion(tf_layers.Layer):
 
     def get_config(self):
         return {
-            'init_gap': self.init_gap,
-            'init_max_distance': self.init_max_distance,
-            'dimension': self.dimension,
-            'trainable': self.trainable
+            "init_gap": self.init_gap,
+            "init_max_distance": self.init_max_distance,
+            "dimension": self.dimension,
+            "trainable": self.trainable,
         }
 
 
-def batched_segment_op(data,
-                       segment_ids,
-                       num_segments,
-                       data_mask=None,
-                       reduction='sum'):
+def batched_segment_op(
+    data, segment_ids, num_segments, data_mask=None, reduction="sum"
+):
     """Flattens data and segment_ids containing a batch dimension for
     tf.math.segment* operations. Includes support for masking.
 
@@ -90,7 +91,7 @@ def batched_segment_op(data,
     flat_data = tf.boolean_mask(data, data_mask)
     flat_ids = tf.boolean_mask(ids_offset, data_mask)
 
-    reduction = getattr(tf.math, f'unsorted_segment_{reduction}')
+    reduction = getattr(tf.math, f"unsorted_segment_{reduction}")
 
     # Perform the segment operation on the flattened vectors, and reshape the
     # result
@@ -123,7 +124,7 @@ class Gather(tf_layers.Layer):
 
 
 class Reduce(tf_layers.Layer):
-    def __init__(self, reduction='sum', *args, **kwargs):
+    def __init__(self, reduction="sum", *args, **kwargs):
         super(Reduce, self).__init__(*args, **kwargs)
         self.reduction = reduction
 
@@ -132,17 +133,18 @@ class Reduce(tf_layers.Layer):
         return [data_shape[0], target_shape[1], data_shape[-1]]
 
     def call(self, inputs, mask=None, **kwargs):
-        data, segment_ids, target, data_mask = self._parse_inputs_and_mask(
-            inputs, mask)
+        data, segment_ids, target, data_mask = self._parse_inputs_and_mask(inputs, mask)
         num_segments = tf.shape(target, out_type=segment_ids.dtype)[1]
-        return batched_segment_op(data,
-                                  segment_ids,
-                                  num_segments,
-                                  data_mask=data_mask,
-                                  reduction=self.reduction)
+        return batched_segment_op(
+            data,
+            segment_ids,
+            num_segments,
+            data_mask=data_mask,
+            reduction=self.reduction,
+        )
 
     def get_config(self):
-        return {'reduction': self.reduction}
+        return {"reduction": self.reduction}
 
     @staticmethod
     def _parse_inputs_and_mask(inputs, mask=None):
@@ -158,8 +160,8 @@ class Reduce(tf_layers.Layer):
 
 
 class ConcatDense(tf_layers.Layer):
-    """ Layer to combine the concatenation and two dense layers. Just useful as a common operation in the graph
-    layers """
+    """Layer to combine the concatenation and two dense layers. Just useful as a common
+    operation in the graph layers"""
 
     def __init__(self, **kwargs):
         super(ConcatDense, self).__init__(**kwargs)
@@ -168,7 +170,7 @@ class ConcatDense(tf_layers.Layer):
     def build(self, input_shape):
         num_features = input_shape[0][-1]
         self.concat = tf_layers.Concatenate()
-        self.dense1 = tf_layers.Dense(2 * num_features, activation='relu')
+        self.dense1 = tf_layers.Dense(2 * num_features, activation="relu")
         self.dense2 = tf_layers.Dense(num_features)
 
     def call(self, inputs, mask=None, **kwargs):

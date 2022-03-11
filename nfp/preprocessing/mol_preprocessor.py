@@ -3,12 +3,7 @@ from typing import Callable, Dict, Hashable, Optional
 import networkx as nx
 import numpy as np
 import rdkit.Chem
-
-try:
-    import tensorflow as tf
-except ImportError:
-    tf = None
-
+from nfp.frameworks import tf
 from nfp.preprocessing import features
 from nfp.preprocessing.preprocessor import Preprocessor
 from nfp.preprocessing.tokenizer import Tokenizer

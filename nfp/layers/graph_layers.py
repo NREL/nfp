@@ -1,11 +1,12 @@
-import tensorflow as tf
-from tensorflow.keras import layers as tf_layers
-
 import nfp
+from nfp.frameworks import tf
+
+assert tf, "Tensorflow 2.x required for GraphLayers"
+tf_layers = tf.keras.layers
 
 
 class GraphLayer(tf_layers.Layer):
-    """ Base class for all GNN layers """
+    """Base class for all GNN layers"""
 
     def __init__(self, dropout: float = 0.0, **kwargs):
         super().__init__(**kwargs)
@@ -23,7 +24,7 @@ class GraphLayer(tf_layers.Layer):
         else:
             raise RuntimeError("wrong input shape")
 
-        if self.dropout > 0.:
+        if self.dropout > 0.0:
             self.dropout_layer = tf_layers.Dropout(self.dropout)
 
     def get_config(self):
@@ -32,7 +33,7 @@ class GraphLayer(tf_layers.Layer):
 
 class EdgeUpdate(GraphLayer):
     def build(self, input_shape):
-        """ inputs = [atom_state, bond_state, connectivity]
+        """inputs = [atom_state, bond_state, connectivity]
         shape(bond_state) = [batch, num_bonds, bond_features]
         """
         super().build(input_shape)
@@ -41,8 +42,8 @@ class EdgeUpdate(GraphLayer):
         self.concat = nfp.ConcatDense()
 
     def call(self, inputs, mask=None, **kwargs):
-        """ Inputs: [atom_state, bond_state, connectivity]
-            Outputs: bond_state
+        """Inputs: [atom_state, bond_state, connectivity]
+        Outputs: bond_state
 
         """
         if not self.use_global:
@@ -56,13 +57,13 @@ class EdgeUpdate(GraphLayer):
         target_atom = self.gather([atom_state, connectivity[:, :, 1]])
 
         if not self.use_global:
-            new_bond_state = self.concat(
-                [bond_state, source_atom, target_atom])
+            new_bond_state = self.concat([bond_state, source_atom, target_atom])
         else:
             new_bond_state = self.concat(
-                [bond_state, source_atom, target_atom, global_state])
+                [bond_state, source_atom, target_atom, global_state]
+            )
 
-        if self.dropout > 0.:
+        if self.dropout > 0.0:
             new_bond_state = self.dropout_layer(new_bond_state)
 
         return new_bond_state
@@ -86,14 +87,14 @@ class NodeUpdate(GraphLayer):
         self.gather = nfp.Gather()
 
         self.concat = nfp.ConcatDense()
-        self.reduce = nfp.Reduce(reduction='sum')
+        self.reduce = nfp.Reduce(reduction="sum")
 
-        self.dense1 = tf_layers.Dense(2 * num_features, activation='relu')
+        self.dense1 = tf_layers.Dense(2 * num_features, activation="relu")
         self.dense2 = tf_layers.Dense(num_features)
 
     def call(self, inputs, mask=None, **kwargs):
-        """ Inputs: [atom_state, bond_state, connectivity]
-            Outputs: atom_state
+        """Inputs: [atom_state, bond_state, connectivity]
+        Outputs: atom_state
 
         """
         if not self.use_global:
@@ -111,17 +112,17 @@ class NodeUpdate(GraphLayer):
 
         if mask is not None:
             # Only works for sum, max
-            messages = tf.where(tf.expand_dims(mask[1], axis=-1), messages,
-                                tf.zeros_like(messages))
+            messages = tf.where(
+                tf.expand_dims(mask[1], axis=-1), messages, tf.zeros_like(messages)
+            )
 
-        new_atom_state = self.reduce(
-            [messages, connectivity[:, :, 0], atom_state])
+        new_atom_state = self.reduce([messages, connectivity[:, :, 0], atom_state])
 
         # Dense net after message reduction
         new_atom_state = self.dense1(new_atom_state)
         new_atom_state = self.dense2(new_atom_state)
 
-        if self.dropout > 0.:
+        if self.dropout > 0.0:
             new_atom_state = self.dropout_layer(new_atom_state)
 
         return new_atom_state
@@ -146,14 +147,12 @@ class GlobalUpdate(GraphLayer):
     def build(self, input_shape):
         super().build(input_shape)
         dense_units = self.units * self.num_heads  # N*H
-        self.query_layer = tf_layers.Dense(self.num_heads, name='query')
-        self.value_layer = tf_layers.Dense(dense_units, name='value')
+        self.query_layer = tf_layers.Dense(self.num_heads, name="query")
+        self.value_layer = tf_layers.Dense(dense_units, name="value")
 
     def transpose_scores(self, input_tensor):
         input_shape = tf.shape(input_tensor)
-        output_shape = [
-            input_shape[0], input_shape[1], self.num_heads, self.units
-        ]
+        output_shape = [input_shape[0], input_shape[1], self.num_heads, self.units]
         output_tensor = tf.reshape(input_tensor, output_shape)
         return tf.transpose(a=output_tensor, perm=[0, 2, 1, 3])  # [B,N,S,H]
 
@@ -170,20 +169,20 @@ class GlobalUpdate(GraphLayer):
 
         if mask is not None:
             graph_element_mask = tf.concat([mask[0], mask[1]], axis=1)
-            query = tf.where(tf.expand_dims(graph_element_mask, axis=-1),
-                             query,
-                             tf.ones_like(query) * query.dtype.min)
+            query = tf.where(
+                tf.expand_dims(graph_element_mask, axis=-1),
+                query,
+                tf.ones_like(query) * query.dtype.min,
+            )
 
         query = tf.transpose(query, perm=[0, 2, 1])
-        value = self.transpose_scores(
-            self.value_layer(graph_elements))  # [B,N,S,H]
+        value = self.transpose_scores(self.value_layer(graph_elements))  # [B,N,S,H]
 
         attention_probs = tf.nn.softmax(query)
         context = tf.matmul(tf.expand_dims(attention_probs, 2), value)
-        context = tf.reshape(context,
-                             [batch_size, self.num_heads * self.units])
+        context = tf.reshape(context, [batch_size, self.num_heads * self.units])
 
-        if self.dropout > 0.:
+        if self.dropout > 0.0:
             context = self.dropout_layer(context)
 
         return context

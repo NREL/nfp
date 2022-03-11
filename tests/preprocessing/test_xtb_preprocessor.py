@@ -1,7 +1,7 @@
 import os
 
 import pytest
-import tensorflow as tf
+from nfp.frameworks import tf
 from nfp.preprocessing.xtb_preprocessor import xTBSmilesPreprocessor
 
 dir_path = os.path.dirname(os.path.realpath(__file__))

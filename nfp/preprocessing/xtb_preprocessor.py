@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 import json
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import networkx as nx
 import numpy as np
-import rdkit.Chem
 from nfp.frameworks import tf
 from nfp.preprocessing import features
 from nfp.preprocessing.mol_preprocessor import MolPreprocessor, SmilesPreprocessor
+
+if TYPE_CHECKING:  # only for type checking
+    import rdkit.Chem
 
 
 class xTBPreprocessor(MolPreprocessor):

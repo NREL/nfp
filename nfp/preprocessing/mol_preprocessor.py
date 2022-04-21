@@ -1,12 +1,18 @@
+from __future__ import annotations
+
 from typing import Callable, Dict, Hashable, Optional
 
 import networkx as nx
 import numpy as np
-import rdkit.Chem
 from nfp.frameworks import tf
 from nfp.preprocessing import features
 from nfp.preprocessing.preprocessor import Preprocessor
 from nfp.preprocessing.tokenizer import Tokenizer
+
+try:
+    import rdkit.Chem
+except ImportError:
+    rdkit = None
 
 
 class MolPreprocessor(Preprocessor):
@@ -113,6 +119,7 @@ class SmilesPreprocessor(MolPreprocessor):
     def __init__(self, *args, explicit_hs: bool = True, **kwargs):
         super(SmilesPreprocessor, self).__init__(*args, **kwargs)
         self.explicit_hs = explicit_hs
+        assert rdkit is not None, "rdkit required for SmilesPreprocessor"
 
     def create_nx_graph(self, smiles: str, *args, **kwargs) -> nx.DiGraph:
         mol = rdkit.Chem.MolFromSmiles(smiles)

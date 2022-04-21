@@ -225,9 +225,9 @@ class Preprocessor(ABC):
         pass
 
     @property
-    @abstractmethod
     def tfrecord_features(self) -> Dict[str, tf.io.FixedLenFeature]:
-        pass
+        """Useful feature for storing preprocessed outputs in tfrecord files"""
+        raise NotImplementedError
 
 
 class PreprocessorMultiGraph(Preprocessor, ABC):

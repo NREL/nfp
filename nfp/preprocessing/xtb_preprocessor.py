@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 from typing import TYPE_CHECKING, Dict, List, Optional
 
@@ -67,7 +65,7 @@ class xTBPreprocessor(MolPreprocessor):
             self.xtb_mol_features = xtb_mol_features
 
     def create_nx_graph(
-        self, mol: rdkit.Chem.Mol, jsonfile: str, **kwargs
+        self, mol: "rdkit.Chem.Mol", jsonfile: str, **kwargs
     ) -> nx.DiGraph:
 
         with open(jsonfile, "r") as f:

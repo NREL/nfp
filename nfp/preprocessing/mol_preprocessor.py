@@ -16,8 +16,8 @@ except ImportError:
 class MolPreprocessor(Preprocessor):
     def __init__(
         self,
-        atom_features: Optional[Callable[[rdkit.Chem.Atom], Hashable]] = None,
-        bond_features: Optional[Callable[[rdkit.Chem.Bond], Hashable]] = None,
+        atom_features: Optional[Callable[["rdkit.Chem.Atom"], Hashable]] = None,
+        bond_features: Optional[Callable[["rdkit.Chem.Bond"], Hashable]] = None,
         **kwargs,
     ) -> None:
         super(MolPreprocessor, self).__init__(**kwargs)
@@ -34,7 +34,7 @@ class MolPreprocessor(Preprocessor):
         self.atom_features = atom_features
         self.bond_features = bond_features
 
-    def create_nx_graph(self, mol: rdkit.Chem.Mol, **kwargs) -> nx.DiGraph:
+    def create_nx_graph(self, mol: "rdkit.Chem.Mol", **kwargs) -> nx.DiGraph:
         g = nx.Graph(mol=mol)
         g.add_nodes_from(((atom.GetIdx(), {"atom": atom}) for atom in mol.GetAtoms()))
         g.add_edges_from(

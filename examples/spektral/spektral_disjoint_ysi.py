@@ -1,7 +1,7 @@
 # Demonstrates interoperability of the nfp preprocessing methods with the spektral GNN
-# library (https://graphneural.network/). Specifically follows the `BatchLoader` example
-# for QM9 prediction shown here, https://github.com/danielegrattarola/spektral/blob/
-# master/examples/graph_prediction/qm9_ecc_batch.py
+# library (https://graphneural.network/). Specifically follows the `DisjointLoader`
+# example for QM9 prediction shown here, https://github.com/danielegrattarola/spektral/
+# blob/master/examples/graph_prediction/qm9_ecc.py
 
 import pandas as pd  # noqa: F401
 import tensorflow as tf

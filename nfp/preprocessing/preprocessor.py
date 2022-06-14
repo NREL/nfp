@@ -8,14 +8,13 @@ from typing import Any, Dict, Optional
 import networkx as nx
 import numpy as np
 import tensorflow as tf
-
 from nfp.preprocessing.tokenizer import Tokenizer
 
 logger = logging.getLogger(__name__)
 
 
 class Preprocessor(ABC):
-    def __init__(self, output_dtype: str = 'int32'):
+    def __init__(self, output_dtype: str = "int32"):
         self.output_dtype = output_dtype
 
     @abstractmethod
@@ -23,13 +22,15 @@ class Preprocessor(ABC):
         pass
 
     @abstractmethod
-    def get_edge_features(self, edge_data: list,
-                          max_num_edges) -> Dict[str, np.ndarray]:
+    def get_edge_features(
+        self, edge_data: list, max_num_edges
+    ) -> Dict[str, np.ndarray]:
         pass
 
     @abstractmethod
-    def get_node_features(self, node_data: list,
-                          max_num_nodes) -> Dict[str, np.ndarray]:
+    def get_node_features(
+        self, node_data: list, max_num_nodes
+    ) -> Dict[str, np.ndarray]:
         pass
 
     @abstractmethod
@@ -52,25 +53,33 @@ class Preprocessor(ABC):
         pass
 
     @staticmethod
-    def get_connectivity(graph: nx.DiGraph, max_num_edges: int) -> Dict[str, np.ndarray]:
-        connectivity = np.zeros((max_num_edges, 2), dtype='int64')
+    def get_connectivity(
+        graph: nx.DiGraph, max_num_edges: int
+    ) -> Dict[str, np.ndarray]:
+        connectivity = np.zeros((max_num_edges, 2), dtype="int64")
         if len(graph.edges) > 0:  # Handle odd case with no edges
-            connectivity[:len(graph.edges)] = np.asarray(graph.edges)
-        return {'connectivity': connectivity}
+            connectivity[: len(graph.edges)] = np.asarray(graph.edges)
+        return {"connectivity": connectivity}
 
-    def __call__(self,
-                 structure: Any,
-                 train: bool = False,
-                 max_num_nodes: Optional[int] = None,
-                 max_num_edges: Optional[int] = None,
-                 **kwargs) -> Dict[str, np.ndarray]:
+    def __call__(
+        self,
+        structure: Any,
+        train: bool = False,
+        max_num_nodes: Optional[int] = None,
+        max_num_edges: Optional[int] = None,
+        **kwargs,
+    ) -> Dict[str, np.ndarray]:
         nx_graph = self.create_nx_graph(structure, **kwargs)
 
         max_num_edges = len(nx_graph.edges) if max_num_edges is None else max_num_edges
-        assert len(nx_graph.edges) <= max_num_edges, "max_num_edges too small for given input"
+        assert (
+            len(nx_graph.edges) <= max_num_edges
+        ), "max_num_edges too small for given input"
 
         max_num_nodes = len(nx_graph.nodes) if max_num_nodes is None else max_num_nodes
-        assert len(nx_graph.nodes) <= max_num_nodes, "max_num_nodes too small for given input"
+        assert (
+            len(nx_graph.nodes) <= max_num_nodes
+        ), "max_num_nodes too small for given input"
 
         # Make sure that Tokenizer classes are correctly initialized
         for _, tokenizer in getmembers(self, lambda x: type(x) == Tokenizer):
@@ -81,30 +90,26 @@ class Preprocessor(ABC):
         graph_features = self.get_graph_features(nx_graph.graph)
         connectivity = self.get_connectivity(nx_graph, max_num_edges)
 
-        return {
-            **node_features,
-            **edge_features,
-            **graph_features,
-            **connectivity
-        }
+        return {**node_features, **edge_features, **graph_features, **connectivity}
 
-    def construct_feature_matrices(self,
-                                   *args,
-                                   train=False,
-                                   **kwargs) -> Dict[str, np.ndarray]:
+    def construct_feature_matrices(
+        self, *args, train=False, **kwargs
+    ) -> Dict[str, np.ndarray]:
         warnings.warn(
             "construct_feature_matrices is deprecated, use `call` instead as "
-            "of nfp 0.4.0", DeprecationWarning)
+            "of nfp 0.4.0",
+            DeprecationWarning,
+        )
         return self(*args, train=train, **kwargs)
 
     def to_json(self, filename: str) -> None:
         """Serialize the classes's data to a json file"""
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             json.dump(self, f, default=lambda x: x.__dict__)
 
     def from_json(self, filename: str) -> None:
         """Set's the class's data with attributes taken from the save file"""
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             json_data = json.load(f)
         load_from_json(self, json_data)
 
@@ -117,12 +122,14 @@ class PreprocessorMultiGraph(Preprocessor, ABC):
         pass
 
     @staticmethod
-    def get_connectivity(graph: nx.DiGraph, max_num_edges: int) -> Dict[str, np.ndarray]:
+    def get_connectivity(
+        graph: nx.DiGraph, max_num_edges: int
+    ) -> Dict[str, np.ndarray]:
         # Don't include keys in the connectivity matrix
-        connectivity = np.zeros((max_num_edges, 2), dtype='int64')
+        connectivity = np.zeros((max_num_edges, 2), dtype="int64")
         if len(graph.edges) > 0:  # Handle odd case with no edges
-            connectivity[:len(graph.edges)] = np.asarray(graph.edges)[:, :2]
-        return {'connectivity': connectivity}
+            connectivity[: len(graph.edges)] = np.asarray(graph.edges)[:, :2]
+        return {"connectivity": connectivity}
 
 
 def load_from_json(obj, data):
@@ -143,10 +150,11 @@ def load_from_json(obj, data):
         try:
             if isinstance(val, type(data[key])):
                 obj.__dict__[key] = data[key]
-            elif hasattr(val, '__dict__'):
+            elif hasattr(val, "__dict__"):
                 load_from_json(val, data[key])
 
         except KeyError:
             logger.warning(
                 f"{key} not found in JSON file, it may have been created with"
-                " an older nfp version")
+                " an older nfp version"
+            )

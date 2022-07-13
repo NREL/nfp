@@ -8,7 +8,6 @@ class MissingDependencyException(RuntimeError):
 
 
 custom_objects = {
-    "Gather": Gather,
     "Reduce": Reduce,
     "masked_mean_squared_error": masked_mean_squared_error,
     "masked_mean_absolute_error": masked_mean_absolute_error,

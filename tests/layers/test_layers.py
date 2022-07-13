@@ -22,19 +22,19 @@ layers = tf.keras.layers
 #     assert_allclose(out[1], inputs[:, :, 1])
 
 
-def test_gather():
-    in1 = layers.Input(shape=[None], dtype="float", name="data")
-    in2 = layers.Input(shape=[None], dtype=tf.int64, name="indices")
+# def test_gather():
+#     in1 = layers.Input(shape=[None], dtype="float", name="data")
+#     in2 = layers.Input(shape=[None], dtype=tf.int64, name="indices")
 
-    gather = nfp.Gather()([in1, in2])
+#     gather = nfp.Gather()([in1, in2])
 
-    model = tf.keras.Model([in1, in2], [gather])
+#     model = tf.keras.Model([in1, in2], [gather])
 
-    data = np.random.rand(2, 10).astype(np.float32)
-    indices = np.array([[2, 6, 3], [5, 1, 0]])
-    out = model([data, indices])
+#     data = np.random.rand(2, 10).astype(np.float32)
+#     indices = np.array([[2, 6, 3], [5, 1, 0]])
+#     out = model([data, indices])
 
-    assert_allclose(out, np.vstack([data[0, indices[0]], data[1, indices[1]]]))
+#     assert_allclose(out, np.vstack([data[0, indices[0]], data[1, indices[1]]]))
 
 
 @pytest.mark.parametrize("method", ["sum", "mean", "max", "min", "prod"])

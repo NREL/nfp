@@ -9,41 +9,37 @@ from nfp.preprocessing.crystal_preprocessor import PymatgenPreprocessor
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
-@pytest.fixture(scope="module")
-def smiles_inputs():
-    preprocessor = nfp.preprocessing.mol_preprocessor.SmilesPreprocessor()
+@pytest.fixture
+def smiles_list():
+    return ["CC", "CCC", "C1CC1", "C"]
+
+
+@pytest.fixture
+def preprocessor():
+    return nfp.preprocessing.mol_preprocessor.SmilesPreprocessor()
+
+
+@pytest.fixture
+def smiles_inputs(smiles_list, preprocessor):
     dataset = tf.data.Dataset.from_generator(
-        lambda: (
-            preprocessor(smiles, train=True) for smiles in ["CC", "CCC", "C1CC1", "C"]
-        ),
+        lambda: (preprocessor(smiles, train=True) for smiles in smiles_list),
         output_signature=preprocessor.output_signature,
     ).padded_batch(batch_size=4)
 
     return preprocessor, list(dataset.take(1))[0]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def inputs_no_padding(smiles_inputs):
-    preprocessor, inputs = smiles_inputs
+    _, inputs = smiles_inputs
+    return inputs
+
+
+@pytest.fixture
+def inputs_with_padding(smiles_list, preprocessor):
 
     dataset = tf.data.Dataset.from_generator(
-        lambda: (
-            preprocessor(smiles, train=True) for smiles in ["CC", "CCC", "C(C)C", "C"]
-        ),
-        output_signature=preprocessor.output_signature,
-    ).padded_batch(batch_size=4)
-
-    return list(dataset.take(1))[0]
-
-
-@pytest.fixture(scope="module")
-def inputs_with_padding(smiles_inputs):
-    preprocessor, inputs = smiles_inputs
-
-    dataset = tf.data.Dataset.from_generator(
-        lambda: (
-            preprocessor(smiles, train=True) for smiles in ["CC", "CCC", "C(C)C", "C"]
-        ),
+        lambda: (preprocessor(smiles, train=True) for smiles in smiles_list),
         output_signature=preprocessor.output_signature,
     ).padded_batch(
         batch_size=4,
@@ -53,7 +49,17 @@ def inputs_with_padding(smiles_inputs):
     return list(dataset.take(1))[0]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
+def inputs_ragged(smiles_list, preprocessor):
+    dataset = tf.data.Dataset.from_generator(
+        lambda: (preprocessor(smiles, train=True) for smiles in smiles_list),
+        output_signature=preprocessor.output_signature,
+    ).apply(tf.data.experimental.dense_to_ragged_batch(batch_size=4))
+
+    return list(dataset.take(1))[0]
+
+
+@pytest.fixture
 def structure_inputs():
     pymatgen_core = pytest.importorskip("pymatgen.core")
     with open(os.path.join(dir_path, "structure_data.json"), "r") as f:
@@ -65,7 +71,7 @@ def structure_inputs():
     return structures
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def crystals_and_preprocessor(structure_inputs):
     preprocessor = PymatgenPreprocessor()
     dataset = tf.data.Dataset.from_generator(

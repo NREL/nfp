@@ -117,10 +117,10 @@ def batched_segment_op(
 #         return cls(**config)
 
 
-class Gather(tf_layers.Layer):
-    def call(self, inputs, mask=None, **kwargs):
-        reference, indices = inputs
-        return tf.gather(reference, indices, batch_dims=1)
+# class Gather(tf_layers.Layer):
+#     def call(self, inputs, mask=None, **kwargs):
+#         reference, indices = inputs
+#         return tf.gather(reference, indices, batch_dims=1)
 
 
 class Reduce(tf_layers.Layer):
@@ -183,7 +183,8 @@ class ConcatDense(tf_layers.Layer):
         if mask is None:
             return None
         else:
-            return tf.math.reduce_all(tf.stack(mask), axis=0)
+            valid_masks = [i for i in mask if i is not None]
+            return tf.math.reduce_all(tf.stack(valid_masks), axis=0)
 
 
 class Tile(tf_layers.Layer):

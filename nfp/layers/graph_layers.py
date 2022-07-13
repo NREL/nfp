@@ -37,8 +37,6 @@ class EdgeUpdate(GraphLayer):
         shape(bond_state) = [batch, num_bonds, bond_features]
         """
         super().build(input_shape)
-
-        self.gather = nfp.Gather()
         self.concat = nfp.ConcatDense()
 
     def call(self, inputs, mask=None, **kwargs):
@@ -53,8 +51,8 @@ class EdgeUpdate(GraphLayer):
             global_state = self.tile([global_state, bond_state])
 
         # Get nodes at start and end of edge
-        source_atom = self.gather([atom_state, connectivity[:, :, 0]])
-        target_atom = self.gather([atom_state, connectivity[:, :, 1]])
+        source_atom = tf.gather(atom_state, connectivity[:, :, 0], batch_dims=1)
+        target_atom = tf.gather(atom_state, connectivity[:, :, 1], batch_dims=1)
 
         if not self.use_global:
             new_bond_state = self.concat([bond_state, source_atom, target_atom])
@@ -84,8 +82,6 @@ class NodeUpdate(GraphLayer):
 
         num_features = input_shape[1][-1]
 
-        self.gather = nfp.Gather()
-
         self.concat = nfp.ConcatDense()
         self.reduce = nfp.Reduce(reduction="sum")
 
@@ -103,7 +99,7 @@ class NodeUpdate(GraphLayer):
             atom_state, bond_state, connectivity, global_state = inputs
             global_state = self.tile([global_state, bond_state])
 
-        source_atom = self.gather([atom_state, connectivity[:, :, 1]])
+        source_atom = tf.gather(atom_state, connectivity[:, :, 1], batch_dims=1)
 
         if not self.use_global:
             messages = self.concat([source_atom, bond_state])

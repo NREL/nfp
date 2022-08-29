@@ -24,36 +24,6 @@ def smiles_inputs(smiles_list, preprocessor):
     dataset = tf.data.Dataset.from_generator(
         lambda: (preprocessor(smiles, train=True) for smiles in smiles_list),
         output_signature=preprocessor.output_signature,
-    ).padded_batch(batch_size=4)
-
-    return preprocessor, list(dataset.take(1))[0]
-
-
-@pytest.fixture
-def inputs_no_padding(smiles_inputs):
-    _, inputs = smiles_inputs
-    return inputs
-
-
-@pytest.fixture
-def inputs_with_padding(smiles_list, preprocessor):
-
-    dataset = tf.data.Dataset.from_generator(
-        lambda: (preprocessor(smiles, train=True) for smiles in smiles_list),
-        output_signature=preprocessor.output_signature,
-    ).padded_batch(
-        batch_size=4,
-        padded_shapes={"atom": (20,), "bond": (40,), "connectivity": (40, 2)},
-    )
-
-    return list(dataset.take(1))[0]
-
-
-@pytest.fixture
-def inputs_ragged(smiles_list, preprocessor):
-    dataset = tf.data.Dataset.from_generator(
-        lambda: (preprocessor(smiles, train=True) for smiles in smiles_list),
-        output_signature=preprocessor.output_signature,
     ).apply(tf.data.experimental.dense_to_ragged_batch(batch_size=4))
 
     return list(dataset.take(1))[0]
@@ -77,6 +47,6 @@ def crystals_and_preprocessor(structure_inputs):
     dataset = tf.data.Dataset.from_generator(
         lambda: (preprocessor(struct, train=True) for struct in structure_inputs),
         output_signature=preprocessor.output_signature,
-    ).padded_batch(batch_size=5, padding_values=preprocessor.padding_values)
+    ).apply(tf.data.experimental.dense_to_ragged_batch(batch_size=4))
 
     return preprocessor, list(dataset.take(1))[0]

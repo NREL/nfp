@@ -104,13 +104,11 @@ class xTBPreprocessor(MolPreprocessor):
 
         return nx.DiGraph(g)
 
-    def get_edge_features(
-        self, edge_data: list, max_num_edges
-    ) -> Dict[str, np.ndarray]:
+    def get_edge_features(self, edge_data: list) -> Dict[str, np.ndarray]:
 
-        bond_feature_matrix = np.zeros(max_num_edges, dtype=self.output_dtype)
+        bond_feature_matrix = np.zeros(self.num_edges, dtype=self.output_dtype)
         bond_feature_matrix_xtb = np.zeros(
-            (max_num_edges, len(self.xtb_bond_features)), dtype="float32"
+            (self.num_edges, len(self.xtb_bond_features)), dtype="float32"
         )
 
         for n, (start_atom, end_atom, bond_dict) in enumerate(edge_data):
@@ -121,12 +119,10 @@ class xTBPreprocessor(MolPreprocessor):
 
         return {"bond": bond_feature_matrix, "bond_xtb": bond_feature_matrix_xtb}
 
-    def get_node_features(
-        self, node_data: list, max_num_nodes: int
-    ) -> Dict[str, np.ndarray]:
-        node_features = super().get_node_features(node_data, max_num_nodes)
+    def get_node_features(self, node_data: list) -> Dict[str, np.ndarray]:
+        node_features = super().get_node_features(node_data)
         node_features["atom_xtb"] = np.zeros(
-            [max_num_nodes, len(self.xtb_atom_features)], dtype="float32"
+            [self.num_nodes, len(self.xtb_atom_features)], dtype="float32"
         )
         for n, atom_dict in node_data:
             node_features["atom_xtb"][n] = atom_dict["atom_xtb"]

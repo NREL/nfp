@@ -16,7 +16,7 @@ class GraphLayer(tf_layers.Layer):
     def build(self, input_shape):
         if len(input_shape) == 4:
             self.use_global = True
-            self.tile = nfp.Tile()
+            raise NotImplementedError
 
         elif len(input_shape) == 3:
             self.use_global = False
@@ -46,6 +46,7 @@ class EdgeUpdate(GraphLayer):
         """
         if not self.use_global:
             atom_state, bond_state, connectivity = inputs
+            global_state = None
         else:
             atom_state, bond_state, connectivity, global_state = inputs
             global_state = self.tile([global_state, bond_state])

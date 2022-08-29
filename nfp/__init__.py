@@ -1,3 +1,4 @@
+from ._version import get_versions
 from .layers import *
 from .models import *
 from .preprocessing import *
@@ -8,7 +9,6 @@ class MissingDependencyException(RuntimeError):
 
 
 custom_objects = {
-    "Reduce": Reduce,
     "masked_mean_squared_error": masked_mean_squared_error,
     "masked_mean_absolute_error": masked_mean_absolute_error,
     "masked_log_cosh": masked_log_cosh,
@@ -17,7 +17,6 @@ custom_objects = {
     "GlobalUpdate": GlobalUpdate,
 }
 
-from ._version import get_versions
 
 __version__ = get_versions()["version"]
 del get_versions

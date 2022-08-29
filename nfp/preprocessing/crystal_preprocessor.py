@@ -40,21 +40,16 @@ class PymatgenPreprocessor(PreprocessorMultiGraph):
 
         return g
 
-    def get_edge_features(
-        self, edge_data: list, max_num_edges
-    ) -> Dict[str, np.ndarray]:
-
-        edge_feature_matrix = np.empty(max_num_edges, dtype="float32")
+    def get_edge_features(self, edge_data: list) -> Dict[str, np.ndarray]:
+        edge_feature_matrix = np.empty(self.num_edges, dtype="float32")
         edge_feature_matrix[:] = np.nan  # Initialize distances with nans
 
         for n, (_, _, edge_dict) in enumerate(edge_data):
             edge_feature_matrix[n] = edge_dict["distance"]
         return {"distance": edge_feature_matrix}
 
-    def get_node_features(
-        self, node_data: list, max_num_nodes
-    ) -> Dict[str, np.ndarray]:
-        site_feature_matrix = np.zeros(max_num_nodes, dtype=self.output_dtype)
+    def get_node_features(self, node_data: list) -> Dict[str, np.ndarray]:
+        site_feature_matrix = np.zeros(self.num_nodes, dtype=self.output_dtype)
         for n, site_dict in node_data:
             site_feature_matrix[n] = self.site_tokenizer(
                 self.site_features(site_dict["site"])

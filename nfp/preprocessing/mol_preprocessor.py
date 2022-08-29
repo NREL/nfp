@@ -45,10 +45,8 @@ class MolPreprocessor(Preprocessor):
         )
         return nx.DiGraph(g)
 
-    def get_edge_features(
-        self, edge_data: list, max_num_edges
-    ) -> Dict[str, np.ndarray]:
-        bond_feature_matrix = np.zeros(max_num_edges, dtype=self.output_dtype)
+    def get_edge_features(self, edge_data: list) -> Dict[str, np.ndarray]:
+        bond_feature_matrix = np.zeros(self.num_edges, dtype=self.output_dtype)
         for n, (start_atom, end_atom, bond_dict) in enumerate(edge_data):
             flipped = start_atom == bond_dict["bond"].GetEndAtomIdx()
             bond_feature_matrix[n] = self.bond_tokenizer(
@@ -57,10 +55,8 @@ class MolPreprocessor(Preprocessor):
 
         return {"bond": bond_feature_matrix}
 
-    def get_node_features(
-        self, node_data: list, max_num_nodes
-    ) -> Dict[str, np.ndarray]:
-        atom_feature_matrix = np.zeros(max_num_nodes, dtype=self.output_dtype)
+    def get_node_features(self, node_data: list) -> Dict[str, np.ndarray]:
+        atom_feature_matrix = np.zeros(self.num_nodes, dtype=self.output_dtype)
         for n, atom_dict in node_data:
             atom_feature_matrix[n] = self.atom_tokenizer(
                 self.atom_features(atom_dict["atom"])
@@ -127,15 +123,11 @@ class SmilesPreprocessor(MolPreprocessor):
 
 
 class BondIndexPreprocessor(MolPreprocessor):
-    def get_edge_features(
-        self, edge_data: list, max_num_edges
-    ) -> Dict[str, np.ndarray]:
-        bond_indices = np.zeros(max_num_edges, dtype=self.output_dtype)
+    def get_edge_features(self, edge_data: list) -> Dict[str, np.ndarray]:
+        bond_indices = np.zeros(self.num_edges, dtype=self.output_dtype)
         for n, (_, _, edge_dict) in enumerate(edge_data):
             bond_indices[n] = edge_dict["bond"].GetIdx()
-        edge_features = super(BondIndexPreprocessor, self).get_edge_features(
-            edge_data, max_num_edges
-        )
+        edge_features = super(BondIndexPreprocessor, self).get_edge_features(edge_data)
         return {"bond_indices": bond_indices, **edge_features}
 
     @property

@@ -17,9 +17,3 @@ def test_pymatgen_preprocessor(structure_inputs):
         len(inputs["distance"])
         == structure_inputs[0].num_sites * preprocessor.num_neighbors
     )
-
-
-def test_padding(structure_inputs):
-    preprocessor = nfp.preprocessing.crystal_preprocessor.PymatgenPreprocessor()
-    inputs = preprocessor(structure_inputs[0], train=True, max_num_edges=100)
-    assert np.isnan(inputs["distance"][-1])
